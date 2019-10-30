@@ -35,10 +35,6 @@ class Game {
 
         // Move the sphere upward 1/2 of its height.
         sphere.position.y = 1;
-
-        // Create a built-in "ground" shape.
-        let ground = BABYLON.MeshBuilder.CreateGround('ground1',
-                                {width: 6, height: 6, subdivisions: 2}, this._scene);
     }
 
     doRender() : void {
