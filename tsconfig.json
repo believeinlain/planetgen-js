@@ -1,0 +1,9 @@
+{
+	"compilerOptions": {
+		"outFile": "planetgen.js"
+	},
+	"files": [
+		"babylon.d.ts",
+		"main.ts"
+	]
+}
