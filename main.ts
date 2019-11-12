@@ -1,5 +1,7 @@
-///<reference path="babylon.d.ts" />
-///<reference path="geometry/icosphere.ts" />
+import { Icosphere } from './geometry/icosphere';
+
+import * as BABYLON from 'babylonjs';
+//import * as GUI from 'babylonjs-gui';
 
 class Game {
   private _canvas: HTMLCanvasElement;
@@ -7,6 +9,7 @@ class Game {
   private _scene: BABYLON.Scene;
   private _camera: BABYLON.ArcRotateCamera;
   private _light: BABYLON.Light;
+  //  private _gui: GUI.AdvancedDynamicTexture;
 
   constructor(canvasElement : string) {
     // Create canvas and engine.
@@ -29,19 +32,29 @@ class Game {
 
     // Create a basic light, aiming 0,1,0 - meaning, to the sky.
     this._light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0,1,0), this._scene);
-    // make an icosahedron for testing
-    let ico;
-    try {
-      ico = new Icosphere(1, 2);
-    } catch (err) {
-      console.log(err);
-    }
+    /*
+    // create the GUI
+    this._gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+    var button1 = GUI.Button.CreateSimpleButton("but1", "Click Me");
+    button1.width = "150px"
+    button1.height = "40px";
+    button1.color = "white";
+    button1.cornerRadius = 20;
+    button1.background = "green";
+    button1.onPointerUpObservable.add(function() {
+        alert("you did it!");
+    });
+    this._gui.addControl(button1);
+     */
+    // make an icosphere as our 'planet'
+    let ico = new Icosphere(2, 3);
 
     let customMesh = new BABYLON.Mesh('ico', this._scene);
     let vertexData = new BABYLON.VertexData();
 
-    vertexData.positions = ico.getVertices(2);
-    vertexData.indices = ico.getFaces(2);
+    vertexData.positions = ico.getVertices(3);
+    vertexData.indices = ico.getFaces(3);
 
     vertexData.applyToMesh(customMesh);
   }
