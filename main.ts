@@ -32,7 +32,7 @@ class Game {
     // make an icosahedron for testing
     let ico;
     try {
-      ico = new Icosphere(1, 1);
+      ico = new Icosphere(1, 2);
     } catch (err) {
       console.log(err);
     }
@@ -40,8 +40,8 @@ class Game {
     let customMesh = new BABYLON.Mesh('ico', this._scene);
     let vertexData = new BABYLON.VertexData();
 
-    vertexData.positions = ico.getVertices(1);
-    vertexData.indices = ico.getFaces(1);
+    vertexData.positions = ico.getVertices(2);
+    vertexData.indices = ico.getFaces(2);
 
     vertexData.applyToMesh(customMesh);
   }
