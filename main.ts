@@ -1,7 +1,7 @@
 import { Icosphere } from './geometry/icosphere';
 
 import * as BABYLON from 'babylonjs';
-//import * as GUI from 'babylonjs-gui';
+import * as GUI from 'babylonjs-gui';
 
 class Game {
   private _canvas: HTMLCanvasElement;
@@ -9,15 +9,18 @@ class Game {
   private _scene: BABYLON.Scene;
   private _camera: BABYLON.ArcRotateCamera;
   private _light: BABYLON.Light;
-  //  private _gui: GUI.AdvancedDynamicTexture;
+  private _gui: GUI.AdvancedDynamicTexture;
 
-  constructor(canvasElement : string) {
+  private _icosphere: Icosphere;
+  private _icoMesh: BABYLON.Mesh;
+
+  constructor(canvasElement: string) {
     // Create canvas and engine.
     this._canvas = document.getElementById(canvasElement) as HTMLCanvasElement;
     this._engine = new BABYLON.Engine(this._canvas, true);
   }
 
-  createScene() : void {
+  createScene(): void {
     // Create a basic BJS Scene object.
     this._scene = new BABYLON.Scene(this._engine);
 
@@ -32,34 +35,43 @@ class Game {
 
     // Create a basic light, aiming 0,1,0 - meaning, to the sky.
     this._light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0,1,0), this._scene);
-    /*
+
     // create the GUI
     this._gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
-    var button1 = GUI.Button.CreateSimpleButton("but1", "Click Me");
-    button1.width = "150px"
-    button1.height = "40px";
-    button1.color = "white";
-    button1.cornerRadius = 20;
-    button1.background = "green";
-    button1.onPointerUpObservable.add(function() {
-        alert("you did it!");
+    var panel = new GUI.StackPanel();
+    panel.width = "220px";
+    panel.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    panel.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+    this._gui.addControl(panel);
+
+    var header = new GUI.TextBlock();
+    header.text = "LOD Level: 0";
+    header.height = "30px";
+    header.color = "black";
+    panel.addControl(header); 
+
+    var slider = new GUI.Slider();
+    slider.minimum = 0;
+    slider.maximum = 6;
+    slider.value = 0;
+    slider.step = 1;
+    slider.height = "20px";
+    slider.width = "200px";
+    slider.onValueChangedObservable.add( (value) => {
+      header.text = "LOD Level: " + value;
+      this.updateIcosphere(value); 
     });
-    this._gui.addControl(button1);
-     */
+    panel.addControl(slider); 
+
     // make an icosphere as our 'planet'
-    let ico = new Icosphere(2, 3);
+    this._icosphere = new Icosphere(2, 0);
 
-    let customMesh = new BABYLON.Mesh('ico', this._scene);
-    let vertexData = new BABYLON.VertexData();
-
-    vertexData.positions = ico.getVertices(3);
-    vertexData.indices = ico.getFaces(3);
-
-    vertexData.applyToMesh(customMesh);
+    this._icoMesh = new BABYLON.Mesh('ico', this._scene);
+    this.updateIcosphere(0); 
   }
 
-  doRender() : void {
+  doRender(): void {
     // Run the render loop.
     this._engine.runRenderLoop(() => {
       this._scene.render();
@@ -69,6 +81,16 @@ class Game {
     window.addEventListener('resize', () => {
       this._engine.resize();
     });
+  }
+
+  // redraw _icosphere at the specified LOD
+  updateIcosphere(newLOD: number): void {
+    let vertexData = new BABYLON.VertexData();
+
+    vertexData.positions = this._icosphere.getVertices(newLOD);
+    vertexData.indices = this._icosphere.getFaces(newLOD);
+
+    vertexData.applyToMesh(this._icoMesh);
   }
 }
 

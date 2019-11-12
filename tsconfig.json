@@ -8,6 +8,8 @@
   },
   "files": [
     "main.ts",
-    "geometry/icosphere.ts"
+    "geometry/icosphere.ts",
+    "geometry/sphereLOD.ts",
+    "geometry/primitives.ts"
   ]
 }
