@@ -35,18 +35,11 @@ class Icosphere {
 
   // returns faces as a list of vertex indices, where each three represents a clockwise face
   getFaces(LODLevel: number): number[] {
-    let result: number[] = new Array();
-
+    // ensure the LODLevel we want has been generated
     this.updateLOD(LODLevel);
 
-    // loop through all faces of requested LOD level
-    for (let face of this.LOD[LODLevel].faces) {
-      for (let i=0; i<3; i++) {
-	// TODO: Move indexing to be performed during LOD generation to speed up selection
-	result.push(this.points.indexOf(face.points[i]));
-      }
-    }
-    return result;
+    // get the array of vertex indices representing the faces of the desired LOD level
+    return this.LOD[LODLevel].facesAsVertexIndexArray;
   }
 
   updateLOD(LODLevel: number): void {

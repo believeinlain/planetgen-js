@@ -7,6 +7,7 @@ class SphereLOD {
   faces: Array<Face>; // this LOD's face array
   radius: number;
   numPoints: number; // number of points that belong to this LOD
+  facesAsVertexIndexArray: number[]; // array of vertex indices comprising all faces
 
   // subdivide an existing LOD or create LOD 0
   constructor (newRadius: number, pointsRef: Array<Point>, priorLOD?: SphereLOD) {
@@ -252,16 +253,24 @@ class SphereLOD {
 
     // set numPoints to number of points in master points array after construction
     this.numPoints = this.points.length;
+
+    // generate vertex index array
+    this.facesAsVertexIndexArray = new Array<number>();
+    for (let face of this.faces) {
+      for (let i=0; i<3; i++) {
+	this.facesAsVertexIndexArray.push(this.points.indexOf(face.points[i]));
+      }
+    }
   }
 
   // give face a reference to adjacent edges and vice versa
   // takes array indices rather than references
-  linkFaceToEdges(face: number, edge0: number, edge1: number, edge2: number) {
+  linkFaceToEdges(face: number, edge0: number, edge1: number, edge2: number): void {
     // get references and call function with references
     this.linkFaceToEdgesByRef(this.faces[face], this.edges[edge0], this.edges[edge1], this.edges[edge2]);
   }
   // takes references
-  linkFaceToEdgesByRef(face: Face, edge0: Edge, edge1: Edge, edge2: Edge) {
+  linkFaceToEdgesByRef(face: Face, edge0: Edge, edge1: Edge, edge2: Edge): void {
     // give face a link to edges
     face.edges.push(edge0, edge1, edge2);
     // give edges links to face
@@ -271,7 +280,7 @@ class SphereLOD {
   }
 
   // create an edge from points in the master point array by index
-  createEdge(pointIndex: number[]) {
+  createEdge(pointIndex: number[]): Edge {
     let pointArray = [
       this.points[pointIndex[0]],
       this.points[pointIndex[1]]
@@ -279,7 +288,7 @@ class SphereLOD {
     return new Edge(pointArray);
   }
   // create face from points in the master point array by index
-  createFace(pointIndex: number[]) {
+  createFace(pointIndex: number[]): Face {
     let pointArray = [
       this.points[pointIndex[0]],
       this.points[pointIndex[1]],
