@@ -4,6 +4,7 @@
 	},
 	"files": [
 		"babylon.d.ts",
-		"main.ts"
+		"main.ts",
+		"geometry/icosphere.ts"
 	]
 }
