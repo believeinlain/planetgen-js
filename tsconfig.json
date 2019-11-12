@@ -1,10 +1,13 @@
 {
-	"compilerOptions": {
-		"outFile": "planetgen.js"
-	},
-	"files": [
-		"babylon.d.ts",
-		"main.ts",
-		"geometry/icosphere.ts"
-	]
+  "compilerOptions": {
+    "module": "commonjs",
+    "types": [
+      "babylonjs",
+      "babylonjs-gui"
+    ]
+  },
+  "files": [
+    "main.ts",
+    "geometry/icosphere.ts"
+  ]
 }

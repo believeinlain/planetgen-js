@@ -385,3 +385,5 @@ class Icosphere {
     return result;
   }
 }
+
+export { Icosphere };
