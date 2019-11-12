@@ -25,9 +25,22 @@ class Edge {
   }
 
   // returns true if this edge connects point0 and point1 in either direction
-  connectsPoints(point0, point1): boolean {
+  connectsPoints(point0: Point, point1: Point): boolean {
     return ( (this.points[0] == point0 && this.points[1] == point1)
 	  || (this.points[0] == point1 && this.points[1] == point0) );
+  }
+  // returns this edge's subEdge that connects point0 and point1
+  // returns undefined if does not exist
+  getSubEdgeBetween(point0: Point, point1: Point): Edge {
+    if (typeof this.subEdges == undefined) return undefined;
+    for (let subEdge of this.subEdges) {
+      if (subEdge.connectsPoints(point0, point1)) return subEdge;
+    }
+    return undefined;
+  }
+  // returns this edge's subedge adjacent to given endpoint
+  getSubEdgeAdjacentTo(point: Point): Edge {
+    return this.getSubEdgeBetween(point, this.midpoint);
   }
 };
 
@@ -93,20 +106,20 @@ class SphereLOD {
 	let edge12;
 	let edge20;
 	// find edges by connecting points
-	for (let i=0; i<3; ++i) {
+	for (let edge of face.edges) {
 	  // assign edge01 to the edge that connects between point0 and point1
-	  if (face.edges[i].connectsPoints(point0, point1)) edge01 = face.edges[i];
+	  if (edge.connectsPoints(point0, point1)) edge01 = edge;
 	  // assign edge12 to the edge that connects between point1 and point2
-	  if (face.edges[i].connectsPoints(point1, point2)) edge12 = face.edges[i];
+	  if (edge.connectsPoints(point1, point2)) edge12 = edge;
 	  // assign edge20 to the edge that connects between point2 and point0
-	  if (face.edges[i].connectsPoints(point2, point0)) edge20 = face.edges[i];
+	  if (edge.connectsPoints(point2, point0)) edge20 = edge;
 	}
 	// make sure all the edges are defined
-	if (typeof edge01 == 'undefined') 
+	if (typeof edge01 == undefined) 
 	  throw "edge01 in face["+priorLOD.faces.indexOf(face)+"] not defined";
-	if (typeof edge12 == 'undefined') 
+	if (typeof edge12 == undefined) 
 	  throw "edge12 in face["+priorLOD.faces.indexOf(face)+"] not defined";
-	if (typeof edge20 == 'undefined') 
+	if (typeof edge20 == undefined) 
 	  throw "edge20 in face["+priorLOD.faces.indexOf(face)+"] not defined";
 
 	// label midpoints
@@ -127,8 +140,31 @@ class SphereLOD {
 	let midEdge2 = new Edge([midpoint20, midpoint12]);
 	this.edges.push(midEdge0, midEdge1, midEdge2);
 
-	// link up faces and edges
-	// TODO for further subdivision
+	// link up faces and edges to allow further subdivision
+	this.linkFaceToEdgesByRef(
+	  newFace0,
+	  edge01.getSubEdgeAdjacentTo(point0),
+	  edge20.getSubEdgeAdjacentTo(point0),
+	  midEdge0
+	);
+	this.linkFaceToEdgesByRef(
+	  newFace1,
+	  edge01.getSubEdgeAdjacentTo(point1),
+	  edge12.getSubEdgeAdjacentTo(point1),
+	  midEdge1
+	);
+	this.linkFaceToEdgesByRef(
+	  newFace2,
+	  edge12.getSubEdgeAdjacentTo(point2),
+	  edge20.getSubEdgeAdjacentTo(point2),
+	  midEdge2
+	);
+	this.linkFaceToEdgesByRef(
+	  newFace3,
+	  midEdge0,
+	  midEdge1,
+	  midEdge2
+	);
       }
     
     } else {
@@ -312,9 +348,10 @@ class Icosphere {
     // generate LOD 0
     this.LOD = [new SphereLOD(this.radius, this.points)];
 
-    //TODO perform interatively up to LODLevel
-    // for now just generate LODLevel 1
-    this.LOD.push(new SphereLOD(this.radius, this.points, this.LOD[0]));
+    // generate each new LOD up to LODLevel from the last LODLevel
+    for (let i=0; i<LODLevel; ++i) {
+      this.LOD.push(new SphereLOD(this.radius, this.points, this.LOD[i]));
+    }
   }
 
   // returns vertices in the same order as points[]
