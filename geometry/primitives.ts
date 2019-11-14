@@ -44,6 +44,10 @@ class Edge {
   getSubEdgeAdjacentTo(point: Point): Edge {
     return this.getSubEdgeBetween(point, this.midpoint);
   }
+  // get the face opposite the one given (assumes face given touches this edge)
+  getFaceAdjacentTo(face: Face): Face {
+    return (face == this.faces[0]) ? this.faces[1] : this.faces[0];
+  }
 
   // create an edge from points in the master point array by index
   static createEdge(pointIndex: number[], points: Point[]): Edge {
@@ -55,16 +59,63 @@ class Edge {
   }
 };
 
+// define drawtypes for debugdraw
+enum DrawType {
+  DebugNormal,
+    DebugLink,
+    DebugNode,
+}
+
 class Face {
   // index references to defining points in master points array
   // and edges in LOD edge array
   points: Point[];
   edges: Edge[];
+
+  // drawtype for debugdraw
+  drawType: DrawType;
+
   // references to keep track of following subdivision
   subFaces: Face[];
   constructor(newPoints: Point[]) {
     this.points = newPoints;
     this.edges = new Array<Edge>();
+    this.drawType = DrawType.DebugNode;
+  }
+
+  // get all faces adjacent to this one
+  getAdjacentFaces(): Face[] {
+    let result = new Array<Face>();
+    for (let edge of this.edges) {
+      result.push(edge.getFaceAdjacentTo(this));
+    }
+    return result;
+  }
+
+  // returns UV coordinates for debugdraw
+  getDebugUVs(): number[] {
+    let topUV;
+    let leftUV;
+    let rightUV;
+    if (this.drawType == DrawType.DebugNode) {
+      //	console.log("DrawType Node");
+	topUV = { u: 0.25, v: 1 };
+	leftUV = { u: 0, v: 0.5 };
+	rightUV = { u: 0.5, v: 0.5 };
+    } else if (this.drawType == DrawType.DebugLink) {
+      //	console.log("DrawType Link");
+	topUV = { u: 0.25, v: 0.5 };
+	leftUV = { u: 0, v: 0 };
+	rightUV = { u: 0.5, v: 0 };
+    } else {
+      //	console.log("DrawType Normal");
+	topUV = { u: 0.75, v: 1 };
+	leftUV = { u: 0.5, v: 0.5 };
+	rightUV = { u: 1, v: 0.5 };
+    } 
+    let UVArray = [topUV.u, topUV.v, leftUV.u, leftUV.v, rightUV.u, rightUV.v];
+    //    console.log("UVs: "+UVArray);
+    return UVArray;
   }
 
   // create face from points in the master point array by index
@@ -76,12 +127,14 @@ class Face {
     ];
     return new Face(pointArray);
   }
+
   // give face a reference to adjacent edges and vice versa
   // takes array indices rather than references
   static linkFaceToEdges(face: number, edge0: number, edge1: number, edge2: number, edges: Edge[], faces: Face[]): void {
     // get references and call function with references
     Face.linkFaceToEdgesByRef(faces[face], edges[edge0], edges[edge1], edges[edge2]);
   }
+
   // takes references
   static linkFaceToEdgesByRef(face: Face, edge0: Edge, edge1: Edge, edge2: Edge): void {
     // give face a link to edges
@@ -93,4 +146,4 @@ class Face {
   }
 };
 
-export { Point, Face, Edge };
+export { Point, Face, Edge, DrawType };

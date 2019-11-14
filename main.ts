@@ -1,5 +1,6 @@
 
 import { Icosphere } from './geometry/icosphere';
+import { Tectonics } from './terrain/tectonics';
 
 import * as BABYLON from 'babylonjs';
 import * as GUI from 'babylonjs-gui';
@@ -14,6 +15,7 @@ class Game {
 
   private _icosphere: Icosphere;
   private _icoMesh: BABYLON.Mesh;
+  private _icoMaterial: BABYLON.StandardMaterial;
 
   constructor(canvasElement: string) {
     // Create canvas and engine.
@@ -66,9 +68,19 @@ class Game {
     panel.addControl(slider); 
 
     // make an icosphere as our 'planet'
-    this._icosphere = new Icosphere(2, 0);
-
+    this._icosphere = new Icosphere(2, 1);
     this._icoMesh = new BABYLON.Mesh('ico', this._scene);
+
+    // use debug texture for this thing
+    this._icoMaterial = new BABYLON.StandardMaterial("mat", this._scene);
+    this._icoMaterial.diffuseTexture = new BABYLON.Texture("../planetgen/PlanetgenDebug_color.png", this._scene);
+    this._icoMesh.material = this._icoMaterial;
+
+    // test the tectonics class
+    // generate plate tectonics at LOD[0]
+    //let tec = new Tectonics(12345, this._icosphere.LOD[0].faces);
+
+    // update after we generate tectonics so we can use debug UVs
     this.updateIcosphere(0); 
   }
 
@@ -91,7 +103,11 @@ class Game {
       let vertexData = new BABYLON.VertexData();
 
       vertexData.positions = result.vertices;
+      console.log(vertexData.positions);
       vertexData.indices = result.faces;
+      console.log(vertexData.indices);
+      vertexData.uvs = result.UVs;
+      console.log(vertexData.uvs);
 
       vertexData.applyToMesh(this._icoMesh);
     });
