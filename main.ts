@@ -85,12 +85,15 @@ class Game {
 
   // redraw _icosphere at the specified LOD
   updateIcosphere(newLOD: number): void {
-    let vertexData = new BABYLON.VertexData();
+    // update the mesh once the promise fulfills
+    this._icosphere.getUpdatedLODMeshAsync(newLOD).then( (result) => {
+      let vertexData = new BABYLON.VertexData();
 
-    vertexData.positions = this._icosphere.getVertices(newLOD);
-    vertexData.indices = this._icosphere.getFaces(newLOD);
+      vertexData.positions = result.vertices;
+      vertexData.indices = result.faces;
 
-    vertexData.applyToMesh(this._icoMesh);
+      vertexData.applyToMesh(this._icoMesh);
+    });
   }
 }
 

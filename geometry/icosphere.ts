@@ -18,6 +18,14 @@ class Icosphere {
     this.updateLOD(LODLevel);
   }
 
+  // returns a promise to be fulfilled when the updated LOD mesh in generated
+  getUpdatedLODMeshAsync(LODLevel: number) {
+    return new Promise<{vertices: number[], faces: number[]}>( (resolve, reject) => {
+      this.updateLOD(LODLevel);
+      resolve( { vertices: this.getVertices(LODLevel), faces: this.getFaces(LODLevel) } );
+    });
+  }
+
   // returns vertices in the same order as points[]
   getVertices(LODLevel: number): number[] {
     let result: number[] = new Array();
