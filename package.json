@@ -4,10 +4,12 @@
   "description": "Planet generator written in typescript using Babylonjs as a frontend.",
   "main": "planetgen.js",
   "dependencies": {
+    "@types/node": "^12.12.7",
     "babylonjs": "^4.0.3",
     "babylonjs-gui": "^4.0.3"
   },
   "devDependencies": {
+    "seedrandom": "^3.0.5",
     "ts-loader": "^6.2.1",
     "typescript": "^3.7.2",
     "webpack": "^4.41.2",

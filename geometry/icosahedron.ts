@@ -3,7 +3,7 @@ import { Point, Face, Edge } from './primitives';
 
 // static class to generate an icosahedron
 class Icosahedron {
-  static generatePrimitives(radius: number, points: Array<Point>, edges: Array<Edge>, faces: Array<Face>): void {
+  static generatePrimitives(radius: number, points: Point[], edges: Edge[], faces: Face[]): void {
     // ensure given arrays can hold the required values
     if (points.length<12) points.length = 12;
     if (edges.length<30) edges.length = 30;

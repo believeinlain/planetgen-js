@@ -18,7 +18,7 @@ class Edge {
   points: Point[];
   faces: Face[];
 
-  // references to keep track of while performing subdivision
+  // references to keep track of while performing and following subdivision
   subEdges: Edge[];
   midpoint: Point;
   constructor(newPoints: Point[]) {
@@ -46,7 +46,7 @@ class Edge {
   }
 
   // create an edge from points in the master point array by index
-  static createEdge(pointIndex: number[], points: Array<Point>): Edge {
+  static createEdge(pointIndex: number[], points: Point[]): Edge {
     let pointArray = [
       points[pointIndex[0]],
       points[pointIndex[1]]
@@ -60,13 +60,15 @@ class Face {
   // and edges in LOD edge array
   points: Point[];
   edges: Edge[];
+  // references to keep track of following subdivision
+  subFaces: Face[];
   constructor(newPoints: Point[]) {
     this.points = newPoints;
     this.edges = new Array<Edge>();
   }
 
   // create face from points in the master point array by index
-  static createFace(pointIndex: number[], points: Array<Point>): Face {
+  static createFace(pointIndex: number[], points: Point[]): Face {
     let pointArray = [
       points[pointIndex[0]],
       points[pointIndex[1]],
@@ -76,7 +78,7 @@ class Face {
   }
   // give face a reference to adjacent edges and vice versa
   // takes array indices rather than references
-  static linkFaceToEdges(face: number, edge0: number, edge1: number, edge2: number, edges: Array<Edge>, faces: Array<Face>): void {
+  static linkFaceToEdges(face: number, edge0: number, edge1: number, edge2: number, edges: Edge[], faces: Face[]): void {
     // get references and call function with references
     Face.linkFaceToEdgesByRef(faces[face], edges[edge0], edges[edge1], edges[edge2]);
   }
