@@ -20,9 +20,13 @@ class Icosphere {
 
   // returns a promise to be fulfilled when the updated LOD mesh in generated
   getUpdatedLODMeshAsync(LODLevel: number) {
-    return new Promise<{vertices: number[], faces: number[]}>( (resolve, reject) => {
+    return new Promise<{vertices: number[], faces: number[], UVs: number[]}>( (resolve, reject) => {
       this.updateLOD(LODLevel);
-      resolve( { vertices: this._getVertices(LODLevel), faces: this._getFaces(LODLevel) } );
+      resolve({ 
+	vertices: this._getVertices(LODLevel), 
+	faces: this._getFaces(LODLevel),
+	UVs: this._getUVs(LODLevel) 
+      });
     });
   }
 
@@ -44,6 +48,16 @@ class Icosphere {
 
     // get the array of vertex indices representing the faces of the desired LOD level
     return this.LOD[LODLevel].facesAsVertexIndexArray;
+  }
+
+  // returns list of debug UVs
+  private _getUVs(LODLevel: number): number[] {
+    let result = new Array<number>();
+    for (let face of this.LOD[LODLevel].faces) {
+      //      console.log("Got UVs for face "+this.LOD[LODLevel].faces.indexOf(face));
+      result = result.concat(face.getDebugUVs());
+    }
+    return result;
   }
 
   updateLOD(LODLevel: number): void {
