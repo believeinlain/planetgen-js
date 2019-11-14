@@ -1,6 +1,5 @@
 
 import { Icosphere } from './geometry/icosphere';
-import { Tectonics } from './terrain/tectonics';
 
 import * as BABYLON from 'babylonjs';
 import * as GUI from 'babylonjs-gui';
@@ -71,8 +70,6 @@ class Game {
 
     this._icoMesh = new BABYLON.Mesh('ico', this._scene);
     this.updateIcosphere(0); 
-
-    let tec = new Tectonics(1234);
   }
 
   doRender(): void {

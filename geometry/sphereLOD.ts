@@ -3,15 +3,15 @@ import { Point, Face, Edge } from './primitives';
 import { Icosahedron } from './icosahedron';
 
 class SphereLOD {
-  points: Array<Point>; // stores a reference to the master vertex array
-  edges: Array<Edge>; // this LOD's edge array
-  faces: Array<Face>; // this LOD's face array
+  points: Point[]; // stores a reference to the master vertex array
+  edges: Edge[]; // this LOD's edge array
+  faces: Face[]; // this LOD's face array
   radius: number;
   numPoints: number; // number of points that belong to this LOD
   facesAsVertexIndexArray: number[]; // array of vertex indices comprising all faces
 
   // subdivide an existing LOD or create LOD 0
-  constructor (newRadius: number, pointsRef: Array<Point>, priorLOD?: SphereLOD) {
+  constructor (newRadius: number, pointsRef: Point[], priorLOD?: SphereLOD) {
     // copy reference to master vertex array
     this.points = pointsRef;
     // create edge and face arrays for current LOD
@@ -123,6 +123,7 @@ class SphereLOD {
       }
     
     } else {
+      // generate an icosahedron into primitive arrays
       Icosahedron.generatePrimitives(this.radius, this.points, this.edges, this.faces);
     }
 
