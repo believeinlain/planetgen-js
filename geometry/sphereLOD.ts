@@ -86,6 +86,9 @@ class SphereLOD {
 	let newFace3 = new Face([midpoint01, midpoint12, midpoint20]);
 	this.faces.push(newFace0, newFace1, newFace2, newFace3);
 
+	// add new faces to subFaces
+	face.subFaces = [newFace0, newFace1, newFace2, newFace3];
+
 	// create new inside edges
 	let midEdge0 = new Edge([midpoint01, midpoint20]);
 	let midEdge1 = new Edge([midpoint12, midpoint01]);

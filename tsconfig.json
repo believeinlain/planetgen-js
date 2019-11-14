@@ -7,13 +7,8 @@
     ],
     "types": [
       "babylonjs",
-      "babylonjs-gui"
+      "babylonjs-gui",
+      "node"
     ]
-  },
-  "files": [
-    "main.ts",
-    "geometry/icosphere.ts",
-    "geometry/sphereLOD.ts",
-    "geometry/primitives.ts"
-  ]
+  }
 }
