@@ -3,14 +3,14 @@ import { SphereLOD } from './sphereLOD';
 import { Point, Face } from './primitives';
 
 class Icosphere {
-  points: Array<Point>;
-  LOD: Array<SphereLOD>;
+  points: Point[];
+  LOD: SphereLOD[];
   radius: number;
 
   constructor (newRadius: number, LODLevel: number = 0) {
     this.radius = newRadius;
     // initialize point array
-    this.points = new Array(12);
+    this.points = new Array<Point>(12);
 
     // generate LOD 0
     this.LOD = [new SphereLOD(this.radius, this.points)];
@@ -22,15 +22,13 @@ class Icosphere {
   getUpdatedLODMeshAsync(LODLevel: number) {
     return new Promise<{vertices: number[], faces: number[]}>( (resolve, reject) => {
       this.updateLOD(LODLevel);
-      resolve( { vertices: this.getVertices(LODLevel), faces: this.getFaces(LODLevel) } );
+      resolve( { vertices: this._getVertices(LODLevel), faces: this._getFaces(LODLevel) } );
     });
   }
 
   // returns vertices in the same order as points[]
-  getVertices(LODLevel: number): number[] {
-    let result: number[] = new Array();
-
-    this.updateLOD(LODLevel);
+  private _getVertices(LODLevel: number): number[] {
+    let result = new Array<number>();
 
     // Add points up to desired LOD's numpoints which should be the size of the master
     // points array just after that LODLevel was constructed
@@ -42,9 +40,7 @@ class Icosphere {
   }
 
   // returns faces as a list of vertex indices, where each three represents a clockwise face
-  getFaces(LODLevel: number): number[] {
-    // ensure the LODLevel we want has been generated
-    this.updateLOD(LODLevel);
+  private _getFaces(LODLevel: number): number[] {
 
     // get the array of vertex indices representing the faces of the desired LOD level
     return this.LOD[LODLevel].facesAsVertexIndexArray;
@@ -57,6 +53,6 @@ class Icosphere {
       this.LOD.push(new SphereLOD(this.radius, this.points, this.LOD[i-1]));
     }
   }
-}
+};
 
 export { Icosphere };
