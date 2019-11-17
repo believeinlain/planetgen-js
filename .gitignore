@@ -3,3 +3,9 @@ dist/
 
 #ignore node dependencies
 node_modules/
+
+#ignore session:
+Session.vim
+
+#ignore undos
+.undodir/

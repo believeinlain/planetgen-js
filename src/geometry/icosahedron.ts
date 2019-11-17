@@ -10,9 +10,9 @@ class Icosahedron {
     if (faces.length<20) faces.length = 20;
 
     // top point
-    points[0] = new Point(0, 0, radius, 0);
+    points[0] = new Point(0, 0, radius);
     // bottom point
-    points[11] = new Point(0, 0, -radius, 11);
+    points[11] = new Point(0, 0, -radius);
 
     let latitudeAngle = Math.atan(0.5);
     let longitudeAngle = 0.628319; //36 degrees
@@ -29,8 +29,7 @@ class Icosahedron {
       points[1+i] = new Point(
 	topRingRadius*Math.cos(longitudeAngle*i*2), 
 	topRingRadius*Math.sin(longitudeAngle*i*2), 
-	topRingHeight,
-	1+i);
+	topRingHeight);
     }
 
     //bottom ring [6 - 10]
@@ -39,8 +38,7 @@ class Icosahedron {
       points[6+i] = new Point(
 	topRingRadius*Math.cos(longitudeAngle*(i*2-1)), 
 	topRingRadius*Math.sin(longitudeAngle*(i*2-1)), 
-	-topRingHeight,
-	6+i);
+	-topRingHeight);
     }
 
     // NOTE: is a lot of repeated code, but trust me it's way more confusing
