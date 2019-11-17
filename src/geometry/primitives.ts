@@ -47,6 +47,15 @@ class Edge {
     return (face == this.faces[0]) ? this.faces[1] : this.faces[0];
   }
 
+  // return the point that this edge shares with other,
+  // else return undefined
+  getSharedPoint(other: Edge): Point {
+    let sharedPoints = this.points.filter( (point) => {
+      return (other.points.indexOf(point) != -1);
+    });
+    return sharedPoints[0];
+  }
+
   // create an edge from points in the master point array by index
   static createEdge(pointIndex: number[], points: Point[]): Edge {
     let pointArray = [
@@ -57,28 +66,23 @@ class Edge {
   }
 };
 
-// define drawtypes for debugdraw
-enum DrawType {
-  DebugNormal,
-    DebugLink,
-    DebugNode,
-}
-
 class Face {
   // index references to defining points in master points array
   // and edges in LOD edge array
   points: Point[];
   edges: Edge[];
-
-  // drawtype for debugdraw
-  drawType: DrawType;
+  debugUVs: number[];
 
   // references to keep track of following subdivision
   subFaces: Face[];
   constructor(newPoints: Point[]) {
     this.points = newPoints;
     this.edges = new Array<Edge>();
-    this.drawType = DrawType.DebugNormal;
+    // set 'normal' uvs as the default
+    let topUV = { u: 0.75, v: 1 };
+    let leftUV = { u: 0.5, v: 0.5 };
+    let rightUV = { u: 1, v: 0.5 };
+    this.debugUVs = [topUV.u, topUV.v, leftUV.u, leftUV.v, rightUV.u, rightUV.v];
   }
 
   // get all faces adjacent to this one
@@ -92,24 +96,7 @@ class Face {
 
   // returns UV coordinates for debugdraw
   getDebugUVs(): number[] {
-    let topUV;
-    let leftUV;
-    let rightUV;
-    if (this.drawType == DrawType.DebugNode) {
-	topUV = { u: 0.25, v: 1 };
-	leftUV = { u: 0, v: 0.5 };
-	rightUV = { u: 0.5, v: 0.5 };
-    } else if (this.drawType == DrawType.DebugLink) {
-	topUV = { u: 0.25, v: 0.5 };
-	leftUV = { u: 0, v: 0 };
-	rightUV = { u: 0.5, v: 0 };
-    } else {
-	topUV = { u: 0.75, v: 1 };
-	leftUV = { u: 0.5, v: 0.5 };
-	rightUV = { u: 1, v: 0.5 };
-    } 
-    let UVArray = [topUV.u, topUV.v, leftUV.u, leftUV.v, rightUV.u, rightUV.v];
-    return UVArray;
+    return this.debugUVs;
   }
 
   getEdgesByPoints(): {edge01: Edge, edge12: Edge, edge20:Edge} {
@@ -157,4 +144,4 @@ class Face {
   }
 };
 
-export { Point, Face, Edge, DrawType };
+export { Point, Face, Edge };

@@ -1,5 +1,5 @@
 
-import { Point, Edge, Face, DrawType } from '../geometry/primitives';
+import { Point, Edge, Face } from '../geometry/primitives';
 import { SphereLOD } from '../geometry/sphereLOD';
 
 // allow for seeded rng
@@ -17,18 +17,68 @@ class FaultLink {
 
   // update the DrawType on this.location
   updateDrawType(): void {
-    // set drawtype based on number of connections
+    // find the edge indices on locations of this link's connections
+    let topUV;
+    let leftUV;
+    let rightUV;
+
+    // set uvs based on number and orientation of connections
     switch(this.connections.size) {
-      case 3:
-	this.location.drawType = DrawType.DebugNode;
+      case 3: // use the 'node' uvs
+	topUV = { u: 0.25, v: 1 };
+	leftUV = { u: 0, v: 0.5 };
+	rightUV = { u: 0.5, v: 0.5 };
+	this.location.debugUVs = [topUV.u, topUV.v, leftUV.u, leftUV.v, rightUV.u, rightUV.v];
 	break;
-      case 2:
-	this.location.drawType = DrawType.DebugLink;
+      case 2: // use the 'link' uvs
+	topUV = { u: 0.25, v: 0.5 };
+	leftUV = { u: 0, v: 0 };
+	rightUV = { u: 0.5, v: 0 };
+	// find which point index is shared between the edges crossed by the two connections
+	let edges = Array.from([...this.connections], (link) => {
+	  return this.getEdgeAcrossConnectionTo(link);
+	});
+	let sharedPointIndex;
+	if (edges.length == 2) {
+	  sharedPointIndex = this.location.points.indexOf(edges[0].getSharedPoint(edges[1]));
+	} else {
+	  // this should not happen
+	  console.log("Error: Some connection must not have an edge, unable to set debug UV");
+	  return;
+	}
+
+	// this really should never happen
+	if (sharedPointIndex == undefined) {
+	  console.log("Error: point shared by connections does not exist or is not on the FaultLink's face ...");
+	  console.log("... unable to set debug UVs");
+	}
+
+	// rotate the UVs so that topUV is at the sharedPointIndex
+	let swapUV;
+	switch (sharedPointIndex) {
+	  case 0: // no need to rotate
+	    break;
+	  case 1: // rotate so that topUV is at leftUV
+	    swapUV = leftUV;
+	    leftUV = topUV;
+	    topUV = rightUV;
+	    rightUV = swapUV;
+	    break;
+	  case 2: // rotate so that topUV is at rightUV
+	    swapUV = rightUV;
+	    rightUV = topUV;
+	    topUV = leftUV;
+	    leftUV = swapUV;
+	    break;
+	  default: // this should also never happen
+	    console.log("Somehow the sharedPointIndex is > 2. what.");
+	}
+
+	// set uvs to the proper rotated uvs
+	this.location.debugUVs = [topUV.u, topUV.v, leftUV.u, leftUV.v, rightUV.u, rightUV.v];
 	break;
-      default:
-	//console.log("Error: FaultLink detected with "+this.connections.size+" connections. Should be 3 or 2.");
-	this.location.drawType = DrawType.DebugLink; // temporarily bypassed for testing
-	//this.location.drawType = DrawType.DebugNormal;
+      default: // this should never happen
+	console.log("Error: FaultLink detected with "+this.connections.size+" connections. Should be 3 or 2.");
     }
   }
 
@@ -37,6 +87,16 @@ class FaultLink {
     this.connections.add(link);
     link.connections.add(this);
   }
+
+  // get the edge between FaultLinks
+  getEdgeAcrossConnectionTo(other: FaultLink): Edge {
+    for (let edge of this.location.edges) {
+      if (edge.getFaceAdjacentTo(this.location) == other.location) {
+	return edge;
+      }
+    }
+    return undefined;
+  }
 };
 
 class TectonicLOD extends SphereLOD {
@@ -44,7 +104,7 @@ class TectonicLOD extends SphereLOD {
   links: Map<Face, FaultLink>; // use faces as index since FaultLinks have a reference to Face already
   rng; // seeded random number generator
   unpickedFaces: Face[]; // all faces that don't have FaultLinks on them
-  linkedEdges: Edge[]; // aa edges between two FaultLinks
+  linkedEdges: Edge[]; // all between two FaultLinks
 
   constructor (newRadius: number, pointsRef: Point[], priorLOD?: TectonicLOD) {
     super(newRadius, pointsRef, priorLOD);
@@ -76,9 +136,12 @@ class TectonicLOD extends SphereLOD {
       // create new FaultLinks at that edge
       let newLinks = new Array<FaultLink>();
       targetEdge.faces.forEach( (face) => {
-	let newLink = new FaultLink(face);
+	// if link already exists, just link to it rather than creating a new one
+	let existingLink = this.links.get(face);
+	let newLink = existingLink ? existingLink : new FaultLink(face);
 	newLinks.push(newLink);
-	this.links.set(face, newLink);
+	// add it to the links map if it we created a new link
+	if (existingLink == undefined) this.links.set(face, newLink);
 	// remove the face from unpicked faces
 	this.unpickedFaces.filter(unpickedFace => unpickedFace !== face);
       });
@@ -109,13 +172,12 @@ class TectonicLOD extends SphereLOD {
 	for (let index of linkFaceIndices) {
 	  this._connectLinks(this.links.get(superFace.subFaces[index]), centerLink);
 	}
-      } else {
-	console.log("Error, each face with a link should have 2 or 3 connections, this on seems to have "+linkFaceIndices.length);
       }
+      // if there is only one subface with links, it must already be connected off-face
+      // and no new link creation is required
     });
 
-    // update all links
-    this.links.forEach(link => link.updateDrawType());
+    this._updateAllLinks();
   }
 
   // called if no priorLOD is passed to the constructor
@@ -165,19 +227,22 @@ class TectonicLOD extends SphereLOD {
     // iterate through all links and ensure they all have at least 2 connections
     this._expandAllLinks();
 
-    // update all links
-    this.links.forEach(link => link.updateDrawType());
+    this._updateAllLinks();
   }
 
   protected _connectLinks(link0: FaultLink, link1: FaultLink): void {
     // connect the links
     link0.linkTo(link1);
+    // find the edge between them
+    let edgeBetween = link0.getEdgeAcrossConnectionTo(link1);
     // add the edge between them to linkedEdges
-    link0.location.edges.forEach( (edge) => {
-      if (edge.getFaceAdjacentTo(link0.location) == link1.location) {
-	this.linkedEdges.push(edge);
-      }
-    });
+    if (edgeBetween) this.linkedEdges.push(edgeBetween);
+    else console.log("Error, tried to connect two links that don't share an edge");
+  }
+
+  // after links and mesh have been created, update the draw data on the faces appropriately
+  protected _updateAllLinks(): void {
+    this.links.forEach(link => link.updateDrawType());
   }
 
   // iterate through all links and ensure they all have at least 2 connections
