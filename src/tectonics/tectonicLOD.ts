@@ -83,7 +83,7 @@ class TectonicLOD extends SphereLOD {
 	this.unpickedFaces.filter(unpickedFace => unpickedFace !== face);
       });
       // link them to each other
-      newLinks[0].linkTo(newLinks[1]);
+      this._connectLinks(newLinks[0], newLinks[1]);
     });
 
     // iterate through all super faces
