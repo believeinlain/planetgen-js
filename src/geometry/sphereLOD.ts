@@ -7,136 +7,145 @@ class SphereLOD {
   edges: Edge[]; // this LOD's edge array
   faces: Face[]; // this LOD's face array
   radius: number;
-  numPoints: number; // number of points that belong to this LOD
-  facesAsVertexIndexArray: number[]; // array of vertex indices comprising all faces
+
+  meshData = { vertices: [], indices: [], uvs: [] };
 
   // subdivide an existing LOD or create LOD 0
   constructor (newRadius: number, pointsRef: Point[], priorLOD?: SphereLOD) {
+    // initialize variables
+    this._initialize(newRadius, pointsRef);
+
+    if (priorLOD)
+      // subdivide the prior LOD
+      this._subdivide(priorLOD);
+    else
+      // generate LOD 0
+      this._generate();
+
+    // generate meshData for this LOD
+    let i=0;
+    for (let face of this.faces) {
+      for (let point of face.points) {
+	// add a unique vertex for each point of each face to allow UV mapping
+	this.meshData.vertices.push(point.x, point.y, point.z);
+	// add indices in the same order as we added the points
+	this.meshData.indices.push(i++);
+      }
+      // add uvs for each face
+      this.meshData.uvs.push(...face.getDebugUVs());
+    }
+  }
+
+  protected _initialize(newRadius: number, pointsRef: Point[]): void {
+    this.radius = newRadius;
     // copy reference to master vertex array
     this.points = pointsRef;
     // create edge and face arrays for current LOD
     this.edges = new Array<Edge>();
     this.faces = new Array<Face>();
+  }
 
-    this.radius = newRadius;
+  protected _generate(): void {
+    Icosahedron.generatePrimitives(this.radius, this.points, this.edges, this.faces);
+  }
 
-    if (priorLOD) {
-      // subdivide the prior LOD
+  // construct primitives from priorLOD
+  protected _subdivide(priorLOD: SphereLOD): void {
+    // iterate through edges to subdivide
+    priorLOD.edges.forEach(edge => this._subdivideEdge(edge));
 
-      // iterate through edges to subdivide
-      for (let edge of priorLOD.edges) {
-	// add a new point for each edge at the midpoint
-	let point0 = edge.points[0];
-	let point1 = edge.points[1];
-	let midpoint = new Point(
-	  point0.x+(point1.x-point0.x)/2,
-	  point0.y+(point1.y-point0.y)/2,
-	  point0.z+(point1.z-point0.z)/2
-	);
+    // iterate through faces to subdivide
+    priorLOD.faces.forEach(face => this._subdivideFace(face));
+  }
 
-	// shift the new point so it's radius from the origin
-	let distToOrigin = Math.sqrt(midpoint.x*midpoint.x+midpoint.y*midpoint.y+midpoint.z*midpoint.z);
-	let scaleFactor = this.radius/distToOrigin;
-	midpoint.x *= scaleFactor;
-	midpoint.y *= scaleFactor;
-	midpoint.z *= scaleFactor;
+  protected _subdivideEdge(edge: Edge): void {
+    // add a new point for each edge at the midpoint
+    let point0 = edge.points[0];
+    let point1 = edge.points[1];
+    let midpoint = new Point(
+      point0.x+(point1.x-point0.x)/2,
+      point0.y+(point1.y-point0.y)/2,
+      point0.z+(point1.z-point0.z)/2
+    );
 
-	// add it to the master points array
-	midpoint.vertexIndex = this.points.push(midpoint) - 1;
+    // shift the new point so it's radius from the origin
+    let distToOrigin = Math.sqrt(midpoint.x*midpoint.x+midpoint.y*midpoint.y+midpoint.z*midpoint.z);
+    let scaleFactor = this.radius/distToOrigin;
+    midpoint.x *= scaleFactor;
+    midpoint.y *= scaleFactor;
+    midpoint.z *= scaleFactor;
 
-	// create new subdivided edges
-	let subEdge0 = new Edge([edge.points[0], midpoint]);
-	let subEdge1 = new Edge([edge.points[1], midpoint]);
-	this.edges.push(subEdge0);
-	this.edges.push(subEdge1);
+    // add it to the master points array
+    this.points.push(midpoint);
 
-	// add references to new submembers of this edge
-	edge.midpoint = midpoint;
-	edge.subEdges = [subEdge0, subEdge1];
-      }
+    // create new subdivided edges
+    let subEdge0 = new Edge([edge.points[0], midpoint]);
+    let subEdge1 = new Edge([edge.points[1], midpoint]);
+    this.edges.push(subEdge0);
+    this.edges.push(subEdge1);
 
-      // iterate through faces to subdivide
-      for (let face of priorLOD.faces) {
-	let point0 = face.points[0];
-	let point1 = face.points[1];
-	let point2 = face.points[2];
-	// label edge references by connecting points
-	let edge01;
-	let edge12;
-	let edge20;
-	// find edges by connecting points
-	for (let edge of face.edges) {
-	  // assign edge01 to the edge that connects between point0 and point1
-	  if (edge.connectsPoints(point0, point1)) edge01 = edge;
-	  // assign edge12 to the edge that connects between point1 and point2
-	  if (edge.connectsPoints(point1, point2)) edge12 = edge;
-	  // assign edge20 to the edge that connects between point2 and point0
-	  if (edge.connectsPoints(point2, point0)) edge20 = edge;
-	}
+    // add references to new submembers of this edge
+    edge.midpoint = midpoint;
+    edge.subEdges = [subEdge0, subEdge1];
+  }
 
-	// label midpoints
-	let midpoint01 = edge01.midpoint;
-	let midpoint12 = edge12.midpoint;
-	let midpoint20 = edge20.midpoint;
+  protected _subdivideFace(face: Face): void {
+    let point0 = face.points[0];
+    let point1 = face.points[1];
+    let point2 = face.points[2];
+    // label edge references by connecting points
+    let {edge01, edge12, edge20} = face.getEdgesByPoints();
 
-	// create new faces
-	let newFace0 = new Face([point0, midpoint01, midpoint20]);
-	let newFace1 = new Face([point1, midpoint12, midpoint01]);
-	let newFace2 = new Face([point2, midpoint20, midpoint12]);
-	let newFace3 = new Face([midpoint01, midpoint12, midpoint20]);
-	this.faces.push(newFace0, newFace1, newFace2, newFace3);
+    // label midpoints
+    let midpoint01 = edge01.midpoint;
+    let midpoint12 = edge12.midpoint;
+    let midpoint20 = edge20.midpoint;
 
-	// add new faces to subFaces
-	face.subFaces = [newFace0, newFace1, newFace2, newFace3];
+    // create new faces
+    let newFaces = [
+      new Face([point0, midpoint01, midpoint20]),
+      new Face([point1, midpoint12, midpoint01]),
+      new Face([point2, midpoint20, midpoint12]),
+      new Face([midpoint01, midpoint12, midpoint20])
+    ];
+    this.faces.push(...newFaces);
 
-	// create new inside edges
-	let midEdge0 = new Edge([midpoint01, midpoint20]);
-	let midEdge1 = new Edge([midpoint12, midpoint01]);
-	let midEdge2 = new Edge([midpoint20, midpoint12]);
-	this.edges.push(midEdge0, midEdge1, midEdge2);
+    // add new faces to subFaces
+    face.subFaces = newFaces;
 
-	// link up faces and edges to allow further subdivision
-	Face.linkFaceToEdgesByRef(
-	  newFace0,
-	  edge01.getSubEdgeAdjacentTo(point0),
-	  edge20.getSubEdgeAdjacentTo(point0),
-	  midEdge0
-	);
-	Face.linkFaceToEdgesByRef(
-	  newFace1,
-	  edge01.getSubEdgeAdjacentTo(point1),
-	  edge12.getSubEdgeAdjacentTo(point1),
-	  midEdge1
-	);
-	Face.linkFaceToEdgesByRef(
-	  newFace2,
-	  edge12.getSubEdgeAdjacentTo(point2),
-	  edge20.getSubEdgeAdjacentTo(point2),
-	  midEdge2
-	);
-	Face.linkFaceToEdgesByRef(
-	  newFace3,
-	  midEdge0,
-	  midEdge1,
-	  midEdge2
-	);
-      }
-    
-    } else {
-      // generate an icosahedron into primitive arrays
-      Icosahedron.generatePrimitives(this.radius, this.points, this.edges, this.faces);
-    }
+    // create new inside edges
+    let midEdges = [
+      new Edge([midpoint01, midpoint20]),
+      new Edge([midpoint12, midpoint01]),
+      new Edge([midpoint20, midpoint12])
+    ];
+    this.edges.push(...midEdges);
 
-    // set numPoints to number of points in master points array after construction
-    this.numPoints = this.points.length;
-
-    // generate vertex index array
-    this.facesAsVertexIndexArray = new Array<number>();
-    for (let face of this.faces) {
-      for (let i=0; i<3; i++) {
-	this.facesAsVertexIndexArray.push(face.points[i].vertexIndex);
-      }
-    }
+    // link up faces and edges to allow further subdivision
+    Face.linkFaceToEdgesByRef(
+      newFaces[0],
+      edge01.getSubEdgeAdjacentTo(point0),
+      edge20.getSubEdgeAdjacentTo(point0),
+      midEdges[0]
+    );
+    Face.linkFaceToEdgesByRef(
+      newFaces[1],
+      edge01.getSubEdgeAdjacentTo(point1),
+      edge12.getSubEdgeAdjacentTo(point1),
+      midEdges[1]
+    );
+    Face.linkFaceToEdgesByRef(
+      newFaces[2],
+      edge12.getSubEdgeAdjacentTo(point2),
+      edge20.getSubEdgeAdjacentTo(point2),
+      midEdges[2]
+    );
+    Face.linkFaceToEdgesByRef(
+      newFaces[3],
+      midEdges[0],
+      midEdges[1],
+      midEdges[2]
+    );
   }
 };
 
