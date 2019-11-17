@@ -2,7 +2,7 @@ var path = require('path');
 
 module.exports = {
   entry: {
-    app: './main.ts'
+    app: './src/main.ts'
   },
   output: {
     path: path.resolve(__dirname, './dist'),
