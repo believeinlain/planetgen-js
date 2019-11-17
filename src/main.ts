@@ -1,6 +1,5 @@
 
-import { Icosphere } from './geometry/icosphere';
-import { Tectonics } from './terrain/tectonics';
+import { Planet } from './planet';
 
 import * as BABYLON from 'babylonjs';
 import * as GUI from 'babylonjs-gui';
@@ -13,7 +12,7 @@ class Game {
   private _light: BABYLON.Light;
   private _gui: GUI.AdvancedDynamicTexture;
 
-  private _icosphere: Icosphere;
+  private _planet: Planet;
   private _icoMesh: BABYLON.Mesh;
   private _icoMaterial: BABYLON.StandardMaterial;
 
@@ -63,12 +62,12 @@ class Game {
     slider.width = "200px";
     slider.onValueChangedObservable.add( (value) => {
       header.text = "LOD Level: " + value;
-      this.updateIcosphere(value); 
+      this.updatePlanet(value);
     });
     panel.addControl(slider); 
 
     // make an icosphere as our 'planet'
-    this._icosphere = new Icosphere(2, 1);
+    this._planet = new Planet(2, 0);
     this._icoMesh = new BABYLON.Mesh('ico', this._scene);
 
     // use debug texture for this thing
@@ -76,12 +75,8 @@ class Game {
     this._icoMaterial.diffuseTexture = new BABYLON.Texture("../planetgen/PlanetgenDebug_color.png", this._scene);
     this._icoMesh.material = this._icoMaterial;
 
-    // test the tectonics class
-    // generate plate tectonics at LOD[0]
-    //let tec = new Tectonics(12345, this._icosphere.LOD[0].faces);
-
-    // update after we generate tectonics so we can use debug UVs
-    this.updateIcosphere(0); 
+    // initialize _icoMesh
+    this.updatePlanet();
   }
 
   doRender(): void {
@@ -97,17 +92,14 @@ class Game {
   }
 
   // redraw _icosphere at the specified LOD
-  updateIcosphere(newLOD: number): void {
+  updatePlanet(newLOD: number = 0): void {
     // update the mesh once the promise fulfills
-    this._icosphere.getUpdatedLODMeshAsync(newLOD).then( (result) => {
+    this._planet.getUpdatedLODMeshAsync(newLOD).then( (result) => {
       let vertexData = new BABYLON.VertexData();
 
       vertexData.positions = result.vertices;
-      console.log(vertexData.positions);
-      vertexData.indices = result.faces;
-      console.log(vertexData.indices);
-      vertexData.uvs = result.UVs;
-      console.log(vertexData.uvs);
+      vertexData.indices = result.indices;
+      vertexData.uvs = result.uvs;
 
       vertexData.applyToMesh(this._icoMesh);
     });

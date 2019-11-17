@@ -3,12 +3,10 @@ class Point {
   x: number; 
   y: number; 
   z: number;
-  vertexIndex: number;
-  constructor(newX: number, newY: number, newZ: number, index?: number) {
+  constructor(newX: number, newY: number, newZ: number) {
     this.x = newX;
     this.y = newY;
     this.z = newZ;
-    this.vertexIndex = index;
   }
 };
 
@@ -80,7 +78,7 @@ class Face {
   constructor(newPoints: Point[]) {
     this.points = newPoints;
     this.edges = new Array<Edge>();
-    this.drawType = DrawType.DebugNode;
+    this.drawType = DrawType.DebugNormal;
   }
 
   // get all faces adjacent to this one
@@ -98,24 +96,37 @@ class Face {
     let leftUV;
     let rightUV;
     if (this.drawType == DrawType.DebugNode) {
-      //	console.log("DrawType Node");
 	topUV = { u: 0.25, v: 1 };
 	leftUV = { u: 0, v: 0.5 };
 	rightUV = { u: 0.5, v: 0.5 };
     } else if (this.drawType == DrawType.DebugLink) {
-      //	console.log("DrawType Link");
 	topUV = { u: 0.25, v: 0.5 };
 	leftUV = { u: 0, v: 0 };
 	rightUV = { u: 0.5, v: 0 };
     } else {
-      //	console.log("DrawType Normal");
 	topUV = { u: 0.75, v: 1 };
 	leftUV = { u: 0.5, v: 0.5 };
 	rightUV = { u: 1, v: 0.5 };
     } 
     let UVArray = [topUV.u, topUV.v, leftUV.u, leftUV.v, rightUV.u, rightUV.v];
-    //    console.log("UVs: "+UVArray);
     return UVArray;
+  }
+
+  getEdgesByPoints(): {edge01: Edge, edge12: Edge, edge20:Edge} {
+    // label edge references by connecting points
+    let edge01;
+    let edge12;
+    let edge20;
+    // find edges by connecting points
+    for (let edge of this.edges) {
+      // assign edge01 to the edge that connects between point0 and point1
+      if (edge.connectsPoints(this.points[0], this.points[1])) edge01 = edge;
+      // assign edge12 to the edge that connects between point1 and point2
+      if (edge.connectsPoints(this.points[1], this.points[2])) edge12 = edge;
+      // assign edge20 to the edge that connects between point2 and point0
+      if (edge.connectsPoints(this.points[2], this.points[0])) edge20 = edge;
+    }
+    return {edge01, edge12, edge20};
   }
 
   // create face from points in the master point array by index
