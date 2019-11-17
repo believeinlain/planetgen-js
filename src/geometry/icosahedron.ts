@@ -37,7 +37,7 @@ class Icosahedron {
       // add points 6 through 10
       points[6+i] = new Point(
 	topRingRadius*Math.cos(longitudeAngle*(i*2-1)), 
-	topRingRadius*Math.sin(longitudeAngle*(i*2-1)), 
+	topRingRadius*Math.sin(longitudeAngle*(i*2-1)),
 	-topRingHeight);
     }
 
