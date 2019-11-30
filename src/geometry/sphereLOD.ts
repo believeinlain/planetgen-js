@@ -11,9 +11,9 @@ class SphereLOD {
   meshData = { vertices: [], indices: [], uvs: [] };
 
   // subdivide an existing LOD or create LOD 0
-  constructor (newRadius: number, pointsRef: Point[], priorLOD?: SphereLOD) {
+  constructor (newRadius: number, pointsRef: Point[], options: any, priorLOD?: SphereLOD) {
     // initialize variables
-    this._initialize(newRadius, pointsRef);
+    this._initialize(newRadius, pointsRef, options);
 
     if (priorLOD)
       // subdivide the prior LOD
@@ -36,7 +36,7 @@ class SphereLOD {
     }
   }
 
-  protected _initialize(newRadius: number, pointsRef: Point[]): void {
+  protected _initialize(newRadius: number, pointsRef: Point[], options: any): void {
     this.radius = newRadius;
     // copy reference to master vertex array
     this.points = pointsRef;
@@ -60,8 +60,8 @@ class SphereLOD {
 
   protected _subdivideEdge(edge: Edge): void {
     // add a new point for each edge at the midpoint
-    let point0 = edge.points[0];
-    let point1 = edge.points[1];
+    let point0 = edge.getPoint(0);
+    let point1 = edge.getPoint(1);
     let midpoint = new Point(
       point0.x+(point1.x-point0.x)/2,
       point0.y+(point1.y-point0.y)/2,
@@ -79,8 +79,8 @@ class SphereLOD {
     this.points.push(midpoint);
 
     // create new subdivided edges
-    let subEdge0 = new Edge([edge.points[0], midpoint]);
-    let subEdge1 = new Edge([edge.points[1], midpoint]);
+    let subEdge0 = new Edge([point0, midpoint]);
+    let subEdge1 = new Edge([point1, midpoint]);
     this.edges.push(subEdge0);
     this.edges.push(subEdge1);
 

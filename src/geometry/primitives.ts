@@ -11,28 +11,53 @@ class Point {
 };
 
 class Edge {
-  // index references to defining points in master points array
-  // and faces in LOD face array
-  points: Point[];
-  faces: Face[];
+  private _points: Point[];
+  private _faces: Face[];
 
   // references to keep track of while performing and following subdivision
   subEdges: Edge[];
   midpoint: Point;
-  constructor(newPoints: Point[]) {
-    this.points = newPoints;
-    this.faces = new Array<Face>();
+
+  constructor(pointArray: Point[], pointIndices?: number[]) {
+    this._faces = new Array<Face>();
+    if (pointIndices === undefined) {
+      // if we don't have indices, create an edge from the points given
+      this._points = pointArray;
+    } else {
+      // if we do have indices, create an edge from looking up the indices in the given array
+      this._points = [ pointArray[pointIndices[0]], pointArray[pointIndices[1]] ];
+    }
+  }
+
+  getPoint(index: number): Point {
+    return this._points[index];
+  }
+
+  hasPoint(point: Point): boolean {
+    return !(this._points.indexOf(point) === -1);
+  }
+
+  getFace(index: number): Face {
+    return this._faces[index];
+  }
+
+  addFace(face: Face): void {
+    this._faces.push(face);
+  }
+
+  getFaceArray(): Face[] {
+    return [...this._faces];
   }
 
   // returns true if this edge connects point0 and point1 in either direction
   connectsPoints(point0: Point, point1: Point): boolean {
-    return ( (this.points[0] == point0 && this.points[1] == point1)
-	  || (this.points[0] == point1 && this.points[1] == point0) );
+    return ( (this._points[0] === point0 && this._points[1] === point1)
+	  || (this._points[0] === point1 && this._points[1] === point0) );
   }
   // returns this edge's subEdge that connects point0 and point1
   // returns undefined if does not exist
   getSubEdgeBetween(point0: Point, point1: Point): Edge {
-    if (typeof this.subEdges == undefined) return undefined;
+    if (typeof this.subEdges === undefined) return undefined;
     for (let subEdge of this.subEdges) {
       if (subEdge.connectsPoints(point0, point1)) return subEdge;
     }
@@ -44,30 +69,21 @@ class Edge {
   }
   // get the face opposite the one given (assumes face given touches this edge)
   getFaceAdjacentTo(face: Face): Face {
-    return (face == this.faces[0]) ? this.faces[1] : this.faces[0];
+    return (face === this._faces[0]) ? this._faces[1] : this._faces[0];
   }
 
   // return the point that this edge shares with other,
   // else return undefined
   getSharedPoint(other: Edge): Point {
-    let sharedPoints = this.points.filter( (point) => {
-      return (other.points.indexOf(point) != -1);
-    });
-    return sharedPoints[0];
-  }
-
-  // create an edge from points in the master point array by index
-  static createEdge(pointIndex: number[], points: Point[]): Edge {
-    let pointArray = [
-      points[pointIndex[0]],
-      points[pointIndex[1]]
-    ];
-    return new Edge(pointArray);
+    for (let point of this._points) {
+      if (other.hasPoint(point)) return point;
+    }
+    return undefined;
   }
 };
 
 class Face {
-  // index references to defining points in master points array
+  // references to defining points in master points array
   // and edges in LOD edge array
   points: Point[];
   edges: Edge[];
@@ -75,9 +91,19 @@ class Face {
 
   // references to keep track of following subdivision
   subFaces: Face[];
-  constructor(newPoints: Point[]) {
-    this.points = newPoints;
+  constructor(pointArray: Point[], pointIndices?: number[]) {
     this.edges = new Array<Edge>();
+    if (pointIndices === undefined) {
+      // if we don't have indices, create a face from the points given
+      this.points = pointArray;
+    } else {
+      // if we do have indices, create a face from looking up the indices in the given array
+      this.points = [
+	pointArray[pointIndices[0]],
+	pointArray[pointIndices[1]],
+	pointArray[pointIndices[2]]
+      ];
+    }
     // set 'normal' uvs as the default
     let topUV = { u: 0.75, v: 1 };
     let leftUV = { u: 0.5, v: 0.5 };
@@ -116,16 +142,6 @@ class Face {
     return {edge01, edge12, edge20};
   }
 
-  // create face from points in the master point array by index
-  static createFace(pointIndex: number[], points: Point[]): Face {
-    let pointArray = [
-      points[pointIndex[0]],
-      points[pointIndex[1]],
-      points[pointIndex[2]]
-    ];
-    return new Face(pointArray);
-  }
-
   // give face a reference to adjacent edges and vice versa
   // takes array indices rather than references
   static linkFaceToEdges(face: number, edge0: number, edge1: number, edge2: number, edges: Edge[], faces: Face[]): void {
@@ -138,9 +154,9 @@ class Face {
     // give face a link to edges
     face.edges.push(edge0, edge1, edge2);
     // give edges links to face
-    edge0.faces.push(face);
-    edge1.faces.push(face);
-    edge2.faces.push(face);
+    edge0.addFace(face);
+    edge1.addFace(face);
+    edge2.addFace(face);
   }
 };
 
