@@ -106,16 +106,16 @@ class TectonicLOD extends SphereLOD {
   unpickedFaces: Face[]; // all faces that don't have FaultLinks on them
   linkedEdges: Edge[]; // all between two FaultLinks
 
-  constructor (newRadius: number, pointsRef: Point[], priorLOD?: TectonicLOD) {
-    super(newRadius, pointsRef, priorLOD);
+  constructor (newRadius: number, pointsRef: Point[], options: any, priorLOD?: TectonicLOD) {
+    super(newRadius, pointsRef, options, priorLOD);
     // nothing goes here, we just override protected methods of sphereLOD instead
   }
 
-  protected _initialize(newRadius: number, pointsRef: Point[]): void {
-    super._initialize(newRadius, pointsRef);
-    this.rng = seedrandom(315);
+  protected _initialize(newRadius: number, pointsRef: Point[], options: any): void {
+    super._initialize(newRadius, pointsRef, options);
+    this.rng = seedrandom(options.seed);
     this.links = new Map<Face, FaultLink>();
-    this.startingNodeDensity = 0.15;
+    this.startingNodeDensity = options.nodeDensity;
   }
 
   // called if priorLOD is passed to the constructor
@@ -135,7 +135,7 @@ class TectonicLOD extends SphereLOD {
 
       // create new FaultLinks at that edge
       let newLinks = new Array<FaultLink>();
-      targetEdge.faces.forEach( (face) => {
+      targetEdge.getFaceArray().forEach( (face) => {
 	// if link already exists, just link to it rather than creating a new one
 	let existingLink = this.links.get(face);
 	let newLink = existingLink ? existingLink : new FaultLink(face);

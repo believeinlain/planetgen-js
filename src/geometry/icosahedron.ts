@@ -46,51 +46,51 @@ class Icosahedron {
     // lookup which edges connect which vertices and which edges are adjacent to which faces
 
     // add top edges connecting to top vertex
-    edges[0] = Edge.createEdge([0, 1], points);
-    edges[1] = Edge.createEdge([0, 2], points);
-    edges[2] = Edge.createEdge([0, 3], points);
-    edges[3] = Edge.createEdge([0, 4], points);
-    edges[4] = Edge.createEdge([0, 5], points);
+    edges[0] = new Edge(points, [0, 1]);
+    edges[1] = new Edge(points, [0, 2]);
+    edges[2] = new Edge(points, [0, 3]);
+    edges[3] = new Edge(points, [0, 4]);
+    edges[4] = new Edge(points, [0, 5]);
 
     // add top ring of edges
-    edges[5] = Edge.createEdge([1, 2], points);
-    edges[6] = Edge.createEdge([2, 3], points);
-    edges[7] = Edge.createEdge([3, 4], points);
-    edges[8] = Edge.createEdge([4, 5], points);
-    edges[9] = Edge.createEdge([5, 1], points);
+    edges[5] = new Edge(points, [1, 2]);
+    edges[6] = new Edge(points, [2, 3]);
+    edges[7] = new Edge(points, [3, 4]);
+    edges[8] = new Edge(points, [4, 5]);
+    edges[9] = new Edge(points, [5, 1]);
 
     // add middle zigzag edges
-    edges[10] = Edge.createEdge([6, 1], points);
-    edges[11] = Edge.createEdge([1, 7], points);
-    edges[12] = Edge.createEdge([7, 2], points);
-    edges[13] = Edge.createEdge([2, 8], points);
-    edges[14] = Edge.createEdge([8, 3], points);
-    edges[15] = Edge.createEdge([3, 9], points);
-    edges[16] = Edge.createEdge([9, 4], points);
-    edges[17] = Edge.createEdge([4, 10], points);
-    edges[18] = Edge.createEdge([10, 5], points);
-    edges[19] = Edge.createEdge([5, 6], points);
+    edges[10] = new Edge(points, [6, 1]);
+    edges[11] = new Edge(points, [1, 7]);
+    edges[12] = new Edge(points, [7, 2]);
+    edges[13] = new Edge(points, [2, 8]);
+    edges[14] = new Edge(points, [8, 3]);
+    edges[15] = new Edge(points, [3, 9]);
+    edges[16] = new Edge(points, [9, 4]);
+    edges[17] = new Edge(points, [4, 10]);
+    edges[18] = new Edge(points, [10, 5]);
+    edges[19] = new Edge(points, [5, 6]);
 
     // add bottom ring of edges
-    edges[20] = Edge.createEdge([6, 7], points);
-    edges[21] = Edge.createEdge([7, 8], points);
-    edges[22] = Edge.createEdge([8, 9], points);
-    edges[23] = Edge.createEdge([9, 10], points);
-    edges[24] = Edge.createEdge([10, 6], points);
+    edges[20] = new Edge(points, [6, 7]);
+    edges[21] = new Edge(points, [7, 8]);
+    edges[22] = new Edge(points, [8, 9]);
+    edges[23] = new Edge(points, [9, 10]);
+    edges[24] = new Edge(points, [10, 6]);
 
     // add bottom edges connecting to bottom vertex
-    edges[25] = Edge.createEdge([11, 6], points);
-    edges[26] = Edge.createEdge([11, 7], points);
-    edges[27] = Edge.createEdge([11, 8], points);
-    edges[28] = Edge.createEdge([11, 9], points);
-    edges[29] = Edge.createEdge([11, 10], points);
+    edges[25] = new Edge(points, [11, 6]);
+    edges[26] = new Edge(points, [11, 7]);
+    edges[27] = new Edge(points, [11, 8]);
+    edges[28] = new Edge(points, [11, 9]);
+    edges[29] = new Edge(points, [11, 10]);
 
     // top faces
-    faces[0] = Face.createFace([2, 1, 0], points);
-    faces[1] = Face.createFace([3, 2, 0], points);
-    faces[2] = Face.createFace([4, 3, 0], points);
-    faces[3] = Face.createFace([5, 4, 0], points);
-    faces[4] = Face.createFace([1, 5, 0], points);
+    faces[0] = new Face(points, [2, 1, 0]);
+    faces[1] = new Face(points, [3, 2, 0]);
+    faces[2] = new Face(points, [4, 3, 0]);
+    faces[3] = new Face(points, [5, 4, 0]);
+    faces[4] = new Face(points, [1, 5, 0]);
     Face.linkFaceToEdges(0, 0, 1, 5, edges, faces);
     Face.linkFaceToEdges(1, 1, 2, 6, edges, faces);
     Face.linkFaceToEdges(2, 2, 3, 7, edges, faces);
@@ -98,16 +98,16 @@ class Icosahedron {
     Face.linkFaceToEdges(4, 4, 0, 9, edges, faces);
 
     // ring faces
-    faces[5] = Face.createFace([7, 6, 1], points);
-    faces[6] = Face.createFace([7, 1, 2], points);
-    faces[7] = Face.createFace([8, 7, 2], points);
-    faces[8] = Face.createFace([8, 2, 3], points);
-    faces[9] = Face.createFace([9, 8, 3], points);
-    faces[10] = Face.createFace([9, 3, 4], points);
-    faces[11] = Face.createFace([10, 9, 4], points);
-    faces[12] = Face.createFace([10, 4, 5], points);
-    faces[13] = Face.createFace([6, 10, 5], points);
-    faces[14] = Face.createFace([6, 5, 1], points);
+    faces[5] = new Face(points, [7, 6, 1]);
+    faces[6] = new Face(points, [7, 1, 2]);
+    faces[7] = new Face(points, [8, 7, 2]);
+    faces[8] = new Face(points, [8, 2, 3]);
+    faces[9] = new Face(points, [9, 8, 3]);
+    faces[10] = new Face(points, [9, 3, 4]);
+    faces[11] = new Face(points, [10, 9, 4]);
+    faces[12] = new Face(points, [10, 4, 5]);
+    faces[13] = new Face(points, [6, 10, 5]);
+    faces[14] = new Face(points, [6, 5, 1]);
     Face.linkFaceToEdges(5, 20, 10, 11, edges, faces);
     Face.linkFaceToEdges(6, 5, 11, 12, edges, faces);
     Face.linkFaceToEdges(7, 21, 12, 13, edges, faces);
@@ -120,11 +120,11 @@ class Icosahedron {
     Face.linkFaceToEdges(14, 9, 19, 10, edges, faces);
 
     // bottom faces
-    faces[15] = Face.createFace([6, 7, 11], points);
-    faces[16] = Face.createFace([7, 8, 11], points);
-    faces[17] = Face.createFace([8, 9, 11], points);
-    faces[18] = Face.createFace([9, 10, 11], points);
-    faces[19] = Face.createFace([10, 6, 11], points);
+    faces[15] = new Face(points, [6, 7, 11]);
+    faces[16] = new Face(points, [7, 8, 11]);
+    faces[17] = new Face(points, [8, 9, 11]);
+    faces[18] = new Face(points, [9, 10, 11]);
+    faces[19] = new Face(points, [10, 6, 11]);
     Face.linkFaceToEdges(15, 25, 26, 20, edges, faces);
     Face.linkFaceToEdges(16, 26, 27, 21, edges, faces);
     Face.linkFaceToEdges(17, 27, 28, 22, edges, faces);

@@ -66,9 +66,9 @@ class Game {
     });
     panel.addControl(slider); 
 
-    // make an icosphere as our 'planet'
-    this._planet = new Planet(2, 0);
-    this._icoMesh = new BABYLON.Mesh('ico', this._scene);
+    // make a planet
+    this._planet = new Planet(2, 1000, 0.3);
+    this._icoMesh = new BABYLON.Mesh('planet', this._scene);
 
     // use debug texture for this thing
     this._icoMaterial = new BABYLON.StandardMaterial("mat", this._scene);
@@ -93,16 +93,15 @@ class Game {
 
   // redraw _icosphere at the specified LOD
   updatePlanet(newLOD: number = 0): void {
-    // update the mesh once the promise fulfills
-    this._planet.getUpdatedLODMeshAsync(newLOD).then( (result) => {
-      let vertexData = new BABYLON.VertexData();
+    // update the mesh
+    let result = this._planet.getUpdatedLODMesh(newLOD);
+    let vertexData = new BABYLON.VertexData();
 
-      vertexData.positions = result.vertices;
-      vertexData.indices = result.indices;
-      vertexData.uvs = result.uvs;
+    vertexData.positions = result.vertices;
+    vertexData.indices = result.indices;
+    vertexData.uvs = result.uvs;
 
-      vertexData.applyToMesh(this._icoMesh);
-    });
+    vertexData.applyToMesh(this._icoMesh);
   }
 }
 
