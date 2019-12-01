@@ -11,9 +11,9 @@ class SphereLOD {
   meshData = { vertices: [], indices: [], uvs: [] };
 
   // subdivide an existing LOD or create LOD 0
-  constructor (newRadius: number, pointsRef: Point[], options: any, priorLOD?: SphereLOD) {
+  constructor (pointsRef: Point[], options: any, priorLOD?: SphereLOD) {
     // initialize variables
-    this._initialize(newRadius, pointsRef, options);
+    this._initialize(pointsRef, options);
 
     if (priorLOD)
       // subdivide the prior LOD
@@ -25,7 +25,7 @@ class SphereLOD {
     // generate meshData for this LOD
     let i=0;
     for (let face of this.faces) {
-      for (let point of face.points) {
+      for (let point of face.getPointArray()) {
 	// add a unique vertex for each point of each face to allow UV mapping
 	this.meshData.vertices.push(point.x, point.y, point.z);
 	// add indices in the same order as we added the points
@@ -36,8 +36,8 @@ class SphereLOD {
     }
   }
 
-  protected _initialize(newRadius: number, pointsRef: Point[], options: any): void {
-    this.radius = newRadius;
+  protected _initialize(pointsRef: Point[], options: any): void {
+    this.radius = options.radius;
     // copy reference to master vertex array
     this.points = pointsRef;
     // create edge and face arrays for current LOD
@@ -90,9 +90,7 @@ class SphereLOD {
   }
 
   protected _subdivideFace(face: Face): void {
-    let point0 = face.points[0];
-    let point1 = face.points[1];
-    let point2 = face.points[2];
+    let pointArray = face.getPointArray();
     // label edge references by connecting points
     let {edge01, edge12, edge20} = face.getEdgesByPoints();
 
@@ -103,9 +101,9 @@ class SphereLOD {
 
     // create new faces
     let newFaces = [
-      new Face([point0, midpoint01, midpoint20]),
-      new Face([point1, midpoint12, midpoint01]),
-      new Face([point2, midpoint20, midpoint12]),
+      new Face([pointArray[0], midpoint01, midpoint20]),
+      new Face([pointArray[1], midpoint12, midpoint01]),
+      new Face([pointArray[2], midpoint20, midpoint12]),
       new Face([midpoint01, midpoint12, midpoint20])
     ];
     this.faces.push(...newFaces);
@@ -122,26 +120,22 @@ class SphereLOD {
     this.edges.push(...midEdges);
 
     // link up faces and edges to allow further subdivision
-    Face.linkFaceToEdgesByRef(
-      newFaces[0],
-      edge01.getSubEdgeAdjacentTo(point0),
-      edge20.getSubEdgeAdjacentTo(point0),
+    newFaces[0].linkToEdges(
+      edge01.getSubEdgeAdjacentTo(pointArray[0]),
+      edge20.getSubEdgeAdjacentTo(pointArray[0]),
       midEdges[0]
     );
-    Face.linkFaceToEdgesByRef(
-      newFaces[1],
-      edge01.getSubEdgeAdjacentTo(point1),
-      edge12.getSubEdgeAdjacentTo(point1),
+    newFaces[1].linkToEdges(
+      edge01.getSubEdgeAdjacentTo(pointArray[1]),
+      edge12.getSubEdgeAdjacentTo(pointArray[1]),
       midEdges[1]
     );
-    Face.linkFaceToEdgesByRef(
-      newFaces[2],
-      edge12.getSubEdgeAdjacentTo(point2),
-      edge20.getSubEdgeAdjacentTo(point2),
+    newFaces[2].linkToEdges(
+      edge12.getSubEdgeAdjacentTo(pointArray[2]),
+      edge20.getSubEdgeAdjacentTo(pointArray[2]),
       midEdges[2]
     );
-    Face.linkFaceToEdgesByRef(
-      newFaces[3],
+    newFaces[3].linkToEdges(
       midEdges[0],
       midEdges[1],
       midEdges[2]

@@ -85,20 +85,21 @@ class Edge {
 class Face {
   // references to defining points in master points array
   // and edges in LOD edge array
-  points: Point[];
-  edges: Edge[];
-  debugUVs: number[];
+  private _points: Point[];
+  private _edges: Edge[];
+  private _debugUVs: number[];
 
   // references to keep track of following subdivision
   subFaces: Face[];
+
   constructor(pointArray: Point[], pointIndices?: number[]) {
-    this.edges = new Array<Edge>();
+    this._edges = new Array<Edge>();
     if (pointIndices === undefined) {
       // if we don't have indices, create a face from the points given
-      this.points = pointArray;
+      this._points = pointArray;
     } else {
       // if we do have indices, create a face from looking up the indices in the given array
-      this.points = [
+      this._points = [
 	pointArray[pointIndices[0]],
 	pointArray[pointIndices[1]],
 	pointArray[pointIndices[2]]
@@ -108,13 +109,21 @@ class Face {
     let topUV = { u: 0.75, v: 1 };
     let leftUV = { u: 0.5, v: 0.5 };
     let rightUV = { u: 1, v: 0.5 };
-    this.debugUVs = [topUV.u, topUV.v, leftUV.u, leftUV.v, rightUV.u, rightUV.v];
+    this._debugUVs = [topUV.u, topUV.v, leftUV.u, leftUV.v, rightUV.u, rightUV.v];
+  }
+
+  getEdgeArray(): Edge[] {
+    return [...this._edges];
+  }
+
+  getPointArray(): Point[] {
+    return [...this._points];
   }
 
   // get all faces adjacent to this one
   getAdjacentFaces(): Face[] {
     let result = new Array<Face>();
-    for (let edge of this.edges) {
+    for (let edge of this._edges) {
       result.push(edge.getFaceAdjacentTo(this));
     }
     return result;
@@ -122,41 +131,44 @@ class Face {
 
   // returns UV coordinates for debugdraw
   getDebugUVs(): number[] {
-    return this.debugUVs;
+    return this._debugUVs;
   }
 
-  getEdgesByPoints(): {edge01: Edge, edge12: Edge, edge20:Edge} {
+  setDebugUVs(newUVs: number[]): void {
+    this._debugUVs = newUVs;
+  }
+
+  getEdgesByPoints(): {edge01: Edge, edge12: Edge, edge20: Edge} {
     // label edge references by connecting points
     let edge01;
     let edge12;
     let edge20;
     // find edges by connecting points
-    for (let edge of this.edges) {
+    for (let edge of this._edges) {
       // assign edge01 to the edge that connects between point0 and point1
-      if (edge.connectsPoints(this.points[0], this.points[1])) edge01 = edge;
+      if (edge.connectsPoints(this._points[0], this._points[1])) edge01 = edge;
       // assign edge12 to the edge that connects between point1 and point2
-      if (edge.connectsPoints(this.points[1], this.points[2])) edge12 = edge;
+      if (edge.connectsPoints(this._points[1], this._points[2])) edge12 = edge;
       // assign edge20 to the edge that connects between point2 and point0
-      if (edge.connectsPoints(this.points[2], this.points[0])) edge20 = edge;
+      if (edge.connectsPoints(this._points[2], this._points[0])) edge20 = edge;
     }
     return {edge01, edge12, edge20};
+  }
+
+  linkToEdges(edge0: Edge, edge1: Edge, edge2: Edge): void {
+    // give face a link to edges
+    this._edges.push(edge0, edge1, edge2);
+    // give edges links to face
+    edge0.addFace(this);
+    edge1.addFace(this);
+    edge2.addFace(this);
   }
 
   // give face a reference to adjacent edges and vice versa
   // takes array indices rather than references
   static linkFaceToEdges(face: number, edge0: number, edge1: number, edge2: number, edges: Edge[], faces: Face[]): void {
     // get references and call function with references
-    Face.linkFaceToEdgesByRef(faces[face], edges[edge0], edges[edge1], edges[edge2]);
-  }
-
-  // takes references
-  static linkFaceToEdgesByRef(face: Face, edge0: Edge, edge1: Edge, edge2: Edge): void {
-    // give face a link to edges
-    face.edges.push(edge0, edge1, edge2);
-    // give edges links to face
-    edge0.addFace(face);
-    edge1.addFace(face);
-    edge2.addFace(face);
+    faces[face].linkToEdges(edges[edge0], edges[edge1], edges[edge2]);
   }
 };
 

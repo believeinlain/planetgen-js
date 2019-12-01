@@ -47,13 +47,13 @@ class Game {
     panel.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_CENTER;
     this._gui.addControl(panel);
 
-    var header = new GUI.TextBlock();
-    header.text = "LOD Level: 0";
-    header.height = "30px";
-    header.color = "black";
-    panel.addControl(header); 
-
-    var slider = new GUI.Slider();
+    // create LOD control
+    let headerLOD = new GUI.TextBlock();
+    headerLOD.text = "LOD Level: 0";
+    headerLOD.height = "30px";
+    headerLOD.color = "black";
+    panel.addControl(headerLOD);
+    let slider = new GUI.Slider();
     slider.minimum = 0;
     slider.maximum = 6;
     slider.value = 0;
@@ -61,10 +61,28 @@ class Game {
     slider.height = "20px";
     slider.width = "200px";
     slider.onValueChangedObservable.add( (value) => {
-      header.text = "LOD Level: " + value;
-      this.updatePlanet(value);
+      headerLOD.text = "LOD Level: " + value;
+      this.updatePlanetLOD(value);
     });
-    panel.addControl(slider); 
+    panel.addControl(slider);
+
+    // create Seed control
+    let header = new GUI.TextBlock();
+    header.text = "Seed";
+    header.height = "30px";
+    header.color = "black";
+    panel.addControl(header);
+    let input = new GUI.InputText();
+    input.height = "20px";
+    input.width = "200px";
+    input.text = "1000";
+    input.color = "white";
+    input.onFocusSelectAll = false;
+    input.autoStretchWidth = false;
+    input.onTextChangedObservable.add( () => {
+      this.updatePlanetSeed(Number(input.text));
+    });
+    panel.addControl(input);
 
     // make a planet
     this._planet = new Planet(2, 1000, 0.3);
@@ -76,7 +94,7 @@ class Game {
     this._icoMesh.material = this._icoMaterial;
 
     // initialize _icoMesh
-    this.updatePlanet();
+    this.updatePlanetLOD(0);
   }
 
   doRender(): void {
@@ -91,8 +109,14 @@ class Game {
     });
   }
 
+  // regenerate planet with new seed
+  updatePlanetSeed(newSeed: number): void {
+    this._planet.changeSeed(newSeed);
+    this.updatePlanetLOD(this._planet.getLODLevel());
+  }
+
   // redraw _icosphere at the specified LOD
-  updatePlanet(newLOD: number = 0): void {
+  updatePlanetLOD(newLOD: number): void {
     // update the mesh
     let result = this._planet.getUpdatedLODMesh(newLOD);
     let vertexData = new BABYLON.VertexData();
