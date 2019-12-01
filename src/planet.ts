@@ -4,7 +4,7 @@ import { TectonicLOD } from './tectonics/tectonicLOD';
 
 class Planet extends Icosphere {
   constructor (newRadius: number, newSeed: number, newNodeDensity: number) {
-    super(newRadius, {seed: newSeed, nodeDensity: newNodeDensity} );
+    super({radius: newRadius, seed: newSeed, nodeDensity: newNodeDensity} );
   }
 
   // set new seed and regenerate mesh
@@ -20,16 +20,21 @@ class Planet extends Icosphere {
     return this._options.seed;
   }
 
+  // get the highest LOD level generated
+  getLODLevel(): number {
+    return this._LOD.length - 1;
+  }
+
   protected _updateLOD(LODLevel: number): void {
     if (this._LOD == undefined) {
       // generate LOD 0
-      this._LOD = [new TectonicLOD(this._radius, this._points, this._options)];
+      this._LOD = [new TectonicLOD(this._points, this._options)];
     }
 
     // generate each new LOD up to LODLevel from the last LODLevel
     // starting at LOD.length
     for (let i=this._LOD.length; i<=LODLevel; ++i) {
-      this._LOD.push(new TectonicLOD(this._radius, this._points, this._options, this._LOD[i-1] as TectonicLOD));
+      this._LOD.push(new TectonicLOD(this._points, this._options, this._LOD[i-1] as TectonicLOD));
     }
   }
 };
