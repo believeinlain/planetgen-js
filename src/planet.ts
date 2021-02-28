@@ -1,60 +1,62 @@
 import { Point } from './geometry/primitives';
 import { TectonicLOD } from './tectonics/tectonicLOD';
 
+// allow for seeded rng
+var seedrandom = require('seedrandom');
+
 class Planet {
   protected _points: Point[];
   protected _LOD: TectonicLOD[];
   radius: number;
-  seed: number;
+  private _seed: number;
+  private _rng: any;
   nodeDensity: number;
 
   constructor(radius: number, seed: number, nodeDensity: number) {
     // initialize point array
     this._points = new Array<Point>(12);
     this.radius = radius;
-    this.seed = seed;
+    this._seed = seed;
+    this._rng = seedrandom(seed); // seeded random number generator
     this.nodeDensity = nodeDensity;
+    this._LOD = [];
 
     // initialize LOD at zero
     this._updateLOD(0);
   }
 
-  // set new seed and regenerate mesh
-  changeSeed(newSeed: number): void {
-    this.seed = newSeed;
-    let LODLevel = this._LOD.length - 1;
-    this._LOD = undefined;
+  get seed(): number{
+    return this._seed;
+  }
+
+  // set new seed and regenerate all LOD levels
+  changeSeed(seed: number, LODLevel: number): void {
+    this._seed = seed;
+    this._rng = seedrandom(seed);
+    this._LOD = [];
     this._updateLOD(LODLevel);
   }
 
-  // get the set seed
-  getSeed(): number {
-    return this.seed;
-  }
-
   // get the highest LOD level generated
-  getLODLevel(): number {
+  getMaxLODLevel(): number {
     return this._LOD.length - 1;
   }
 
   protected _updateLOD(LODLevel: number): void {
-    if (this._LOD == undefined) {
-      // generate LOD 0
-      this._LOD = [new TectonicLOD(this._points, this.radius, this.seed, this.nodeDensity)];
-    }
-
     // generate each new LOD up to LODLevel from the last LODLevel
     // starting at LOD.length
     for (let i = this._LOD.length; i <= LODLevel; ++i) {
+      console.log(`Generating LOD level ${i}:`);
       this._LOD.push(
         new TectonicLOD(
           this._points,
           this.radius,
-          this.seed,
+          this._rng,
           this.nodeDensity,
-          this._LOD[i - 1] as TectonicLOD
+          (this._LOD.length > 0) ? this._LOD[i - 1] : null
         )
       );
+      console.log(`Faces: ${this._LOD[i].faces.length}, Points: ${this._points.length}.`);
     }
   }
 

@@ -7,6 +7,7 @@ class Point {
     this.x = newX;
     this.y = newY;
     this.z = newZ;
+    this.data = {};
   }
 }
 
@@ -29,6 +30,7 @@ class Edge {
       // if we do have indices, create an edge from looking up the indices in the given array
       this._points = [pointArray[pointIndices[0]], pointArray[pointIndices[1]]];
     }
+    this.data = {};
   }
 
   getPoint(index: number): Point {
@@ -116,6 +118,7 @@ class Face {
     let leftUV = { u: 0.5, v: 0.5 };
     let rightUV = { u: 1, v: 0.5 };
     this._debugUVs = [topUV.u, topUV.v, leftUV.u, leftUV.v, rightUV.u, rightUV.v];
+    this.data = {};
   }
 
   getEdgeArray(): Edge[] {

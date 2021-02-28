@@ -1,32 +1,24 @@
 import { Point, Edge, Face } from '../geometry/primitives';
+import { MeshData } from '../geometry/meshData';
 import { Icosahedron } from '../geometry/icosahedron';
 import { FaultLink } from '../tectonics/faultLink';
-
-// allow for seeded rng
-var seedrandom = require('seedrandom');
 
 class TectonicLOD {
   points: Point[]; // stores a reference to the master vertex array
   edges: Edge[]; // this LOD's edge array
   faces: Face[]; // this LOD's face array
   radius: number;
-  meshData: {
-    positions: number[];
-    indices: number[];
-    uvs: number[];
-    colors: number[];
-  };
+  meshData: MeshData;
 
   startingNodeDensity: number; // ratio of faces that should be nodes
   links: Map<Face, FaultLink>; // use faces as index since FaultLinks have a reference to Face already
-  rng: any; // seeded random number generator
   unpickedFaces: Face[]; // all faces that don't have FaultLinks on them
   linkedEdges: Edge[]; // all between two FaultLinks
 
   constructor(
     pointsRef: Point[],
     radius: number,
-    seed: number,
+    rng: any,
     nodeDensity: number,
     priorLOD?: TectonicLOD
   ) {
@@ -38,40 +30,22 @@ class TectonicLOD {
     this.edges = new Array<Edge>();
     this.faces = new Array<Face>();
 
-    this.rng = seedrandom(seed);
     this.links = new Map<Face, FaultLink>();
     this.startingNodeDensity = nodeDensity;
 
-    this.meshData = {
-      positions: new Array<number>(),
-      indices: new Array<number>(),
-      uvs: new Array<number>(),
-      colors: new Array<number>(),
-    };
-
     if (priorLOD)
       // subdivide the prior LOD
-      this._subdivide(priorLOD);
+      this._subdivide(priorLOD, rng);
     // generate LOD 0
-    else this._generate();
+    else this._generate(rng);
 
     // generate meshData for this LOD
-    let i = 0;
-    for (let face of this.faces) {
-      for (let point of face.getPointArray()) {
-        // add a unique vertex for each point of each face to allow UV mapping
-        this.meshData.positions.push(point.x, point.y, point.z);
-        // add indices in the same order as we added the points
-        this.meshData.indices.push(i++);
-      }
-      // add uvs for each face
-      this.meshData.uvs.push(...face.getDebugUVs());
-    }
+    this.meshData = new MeshData(this.faces);
   }
 
   // called if priorLOD is passed to the constructor
   // code in this function will be called in the super.constructor prior to mesh generation
-  protected _subdivide(priorLOD: TectonicLOD): void {
+  private _subdivide(priorLOD: TectonicLOD, rng: any): void {
     // subdivide mesh
 
     // iterate through edges to subdivide
@@ -86,7 +60,7 @@ class TectonicLOD {
     // iterate though all super edges that connect two links
     priorLOD.linkedEdges.forEach((edge) => {
       // pick a random edge for the fault to pass through
-      let targetEdge = edge.subEdges[Math.round(this.rng())];
+      let targetEdge = edge.subEdges[Math.round(rng())];
 
       // create new FaultLinks at that edge
       let newLinks = new Array<FaultLink>();
@@ -137,7 +111,7 @@ class TectonicLOD {
 
   // called if no priorLOD is passed to the constructor
   // code in this function will be called in the super.constructor prior to mesh generation
-  protected _generate(): void {
+  private _generate(rng: any): void {
     // generate an icosahedron
     let ico = new Icosahedron(this.radius);
     this.points = ico.points;
@@ -151,7 +125,7 @@ class TectonicLOD {
     // add starting nodes until we've reached startingNodeDensity
     while (this.links.size < this.faces.length * this.startingNodeDensity) {
       // pick a random face
-      let pick = Math.floor(this.rng() * this.unpickedFaces.length);
+      let pick = Math.floor(rng() * this.unpickedFaces.length);
 
       // create a new FaultLink at that face
       this.links.set(this.unpickedFaces[pick], new FaultLink(this.unpickedFaces[pick]));
@@ -182,8 +156,45 @@ class TectonicLOD {
       }
     });
 
+    type color = { r: number, g: number, b: number, a: number };
+
+    // return true iff we assigned a new region to this face
+    function assignFaceToRegion(face: Face, region: color): boolean {
+      // if this face is already part of a region, ignore it
+      for (let point of face.getPointArray()) {
+        if (point.data.color) return false;
+      }
+      // otherwise color it
+      face.getPointArray().forEach( (point)=>{
+        if (!point.data.color) {
+          point.data.color = region;
+        }
+      });
+      // if we assigned a new region, spread it
+      if (assignFaceToRegion(face, region)) {
+        face.getAdjacentFaces().forEach( (adjFace)=>{
+          // if not a link face, spread here
+          if (!adjFace.data.faultLink)
+            assignFaceToRegion(adjFace, region);
+        });
+      }
+      return true;
+    };
+
+    this.unpickedFaces.forEach( (face)=> {
+      // pick a random color
+      let num = Math.round(0xffffff * Math.random());
+      let color = {
+        r: (num >> 16)/255,
+        g: (num >> 8 & 255)/255,
+        b: (num & 255)/255,
+        a: 1
+      };
+      assignFaceToRegion(face, color);
+    });
+
     // iterate through all links and ensure they all have at least 2 connections
-    this._expandAllLinks();
+    this._expandAllLinks(rng);
 
     this._updateAllLinks();
   }
@@ -200,11 +211,11 @@ class TectonicLOD {
 
   // after links and mesh have been created, update the draw data on the faces appropriately
   protected _updateAllLinks(): void {
-    this.links.forEach((link) => link.updateDrawType());
+    this.links.forEach((link) => link.updateDrawData());
   }
 
   // iterate through all links and ensure they all have at least 2 connections
-  protected _expandAllLinks(): void {
+  protected _expandAllLinks(rng: any): void {
     for (let link of this.links.values()) {
       if (link.connections.size < 2) {
         // get adjacent links to this link
@@ -213,7 +224,7 @@ class TectonicLOD {
         let existingConnection: FaultLink = link.connections.values().next().value;
         possibleConnectionFaces.delete(existingConnection.location);
         // pick a random connection to link to
-        let targetFace: Face = Array.from(possibleConnectionFaces)[Math.round(this.rng())];
+        let targetFace: Face = Array.from(possibleConnectionFaces)[Math.round(rng())];
 
         // find the face in unpickedFaces, if not found, unpickedIndex = -1
         let unpickedIndex: number = this.unpickedFaces.indexOf(targetFace);

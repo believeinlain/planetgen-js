@@ -3,7 +3,7 @@ import { Planet } from './planet';
 import * as BABYLON from '@babylonjs/core';
 import * as GUI from '@babylonjs/gui';
 
-const maxLOD = 5;
+const maxLOD = 2;
 const startSeed = Math.round(Math.random() * 1000000);
 
 class Game {
@@ -101,7 +101,8 @@ class Game {
     input.onFocusSelectAll = false;
     input.autoStretchWidth = false;
     input.onTextChangedObservable.add(() => {
-      this.updatePlanetSeed(Number(input.text));
+      this._planet.changeSeed(Number(input.text), slider.value);
+      this.updatePlanetLOD(slider.value);
     });
     panel.addControl(input);
 
@@ -116,6 +117,8 @@ class Game {
       this._scene
     );
     this._icoMesh.material = this._icoMaterial;
+    this._icoMesh.useVertexColors = true;
+    this._icoMesh.hasVertexAlpha = true;
 
     // initialize _icoMesh
     this.updatePlanetLOD(maxLOD);
@@ -133,12 +136,6 @@ class Game {
     });
   }
 
-  // regenerate planet with new seed
-  updatePlanetSeed(newSeed: number): void {
-    this._planet.changeSeed(newSeed);
-    this.updatePlanetLOD(this._planet.getLODLevel());
-  }
-
   // redraw _icosphere at the specified LOD
   updatePlanetLOD(newLOD: number): void {
     // update the mesh
@@ -148,6 +145,7 @@ class Game {
     vertexData.positions = result.positions;
     vertexData.indices = result.indices;
     vertexData.uvs = result.uvs;
+    vertexData.colors = result.colors;
 
     vertexData.applyToMesh(this._icoMesh);
   }

@@ -7,11 +7,12 @@ class FaultLink {
 
   constructor(newLocation: Face) {
     this.location = newLocation;
+    newLocation.data.faultLink = this;
     this.connections = new Set<FaultLink>();
   }
 
-  // update the DrawType on this.location
-  updateDrawType(): void {
+  // update the Draw Data on this.location
+  updateDrawData(): void {
     // find the edge indices on locations of this link's connections
     let topUV: { u: number; v: number };
     let leftUV: { u: number; v: number };
@@ -33,7 +34,7 @@ class FaultLink {
         let edges = Array.from([...this.connections], (link) => {
           return this.getEdgeAcrossConnectionTo(link);
         });
-        let sharedPointIndex;
+        let sharedPointIndex: number;
         if (edges.length == 2) {
           sharedPointIndex = this.location
             .getPointArray()
@@ -53,7 +54,7 @@ class FaultLink {
         }
 
         // rotate the UVs so that topUV is at the sharedPointIndex
-        let swapUV;
+        let swapUV: { u: number; v: number };
         switch (sharedPointIndex) {
           case 0: // no need to rotate
             break;
@@ -100,7 +101,7 @@ class FaultLink {
         return edge;
       }
     }
-    return undefined;
+    return null;
   }
 }
 
