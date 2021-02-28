@@ -8,12 +8,24 @@ class SphereLOD {
   faces: Face[]; // this LOD's face array
   radius: number;
 
-  meshData = { vertices: [], indices: [], uvs: [] };
+  meshData: { 
+    positions: number[], 
+    indices: number[], 
+    uvs: number[], 
+    colors: number[]
+  };
 
   // subdivide an existing LOD or create LOD 0
   constructor (pointsRef: Point[], options: any, priorLOD?: SphereLOD) {
     // initialize variables
     this._initialize(pointsRef, options);
+
+    this.meshData = { 
+      positions: new Array<number>(), 
+      indices: new Array<number>(), 
+      uvs: new Array<number>(), 
+      colors: new Array<number>()
+    };
 
     if (priorLOD)
       // subdivide the prior LOD
@@ -26,10 +38,10 @@ class SphereLOD {
     let i=0;
     for (let face of this.faces) {
       for (let point of face.getPointArray()) {
-	// add a unique vertex for each point of each face to allow UV mapping
-	this.meshData.vertices.push(point.x, point.y, point.z);
-	// add indices in the same order as we added the points
-	this.meshData.indices.push(i++);
+        // add a unique vertex for each point of each face to allow UV mapping
+        this.meshData.positions.push(point.x, point.y, point.z);
+        // add indices in the same order as we added the points
+        this.meshData.indices.push(i++);
       }
       // add uvs for each face
       this.meshData.uvs.push(...face.getDebugUVs());
@@ -46,7 +58,10 @@ class SphereLOD {
   }
 
   protected _generate(): void {
-    Icosahedron.generatePrimitives(this.radius, this.points, this.edges, this.faces);
+    let ico = new Icosahedron(this.radius);
+    this.points = ico.points;
+    this.edges = ico.edges;
+    this.faces = ico.faces;
   }
 
   // construct primitives from priorLOD

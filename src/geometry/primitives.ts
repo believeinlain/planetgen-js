@@ -1,14 +1,14 @@
-
-class Point { 
-  x: number; 
-  y: number; 
+class Point {
+  x: number;
+  y: number;
   z: number;
+  data: any;
   constructor(newX: number, newY: number, newZ: number) {
     this.x = newX;
     this.y = newY;
     this.z = newZ;
   }
-};
+}
 
 class Edge {
   private _points: Point[];
@@ -18,6 +18,8 @@ class Edge {
   subEdges: Edge[];
   midpoint: Point;
 
+  data: any;
+
   constructor(pointArray: Point[], pointIndices?: number[]) {
     this._faces = new Array<Face>();
     if (pointIndices === undefined) {
@@ -25,7 +27,7 @@ class Edge {
       this._points = pointArray;
     } else {
       // if we do have indices, create an edge from looking up the indices in the given array
-      this._points = [ pointArray[pointIndices[0]], pointArray[pointIndices[1]] ];
+      this._points = [pointArray[pointIndices[0]], pointArray[pointIndices[1]]];
     }
   }
 
@@ -51,8 +53,10 @@ class Edge {
 
   // returns true if this edge connects point0 and point1 in either direction
   connectsPoints(point0: Point, point1: Point): boolean {
-    return ( (this._points[0] === point0 && this._points[1] === point1)
-	  || (this._points[0] === point1 && this._points[1] === point0) );
+    return (
+      (this._points[0] === point0 && this._points[1] === point1) ||
+      (this._points[0] === point1 && this._points[1] === point0)
+    );
   }
   // returns this edge's subEdge that connects point0 and point1
   // returns undefined if does not exist
@@ -69,7 +73,7 @@ class Edge {
   }
   // get the face opposite the one given (assumes face given touches this edge)
   getFaceAdjacentTo(face: Face): Face {
-    return (face === this._faces[0]) ? this._faces[1] : this._faces[0];
+    return face === this._faces[0] ? this._faces[1] : this._faces[0];
   }
 
   // return the point that this edge shares with other,
@@ -80,7 +84,7 @@ class Edge {
     }
     return undefined;
   }
-};
+}
 
 class Face {
   // references to defining points in master points array
@@ -92,6 +96,8 @@ class Face {
   // references to keep track of following subdivision
   subFaces: Face[];
 
+  data: any;
+
   constructor(pointArray: Point[], pointIndices?: number[]) {
     this._edges = new Array<Edge>();
     if (pointIndices === undefined) {
@@ -100,16 +106,23 @@ class Face {
     } else {
       // if we do have indices, create a face from looking up the indices in the given array
       this._points = [
-	pointArray[pointIndices[0]],
-	pointArray[pointIndices[1]],
-	pointArray[pointIndices[2]]
+        pointArray[pointIndices[0]],
+        pointArray[pointIndices[1]],
+        pointArray[pointIndices[2]],
       ];
     }
     // set 'normal' uvs as the default
     let topUV = { u: 0.75, v: 1 };
     let leftUV = { u: 0.5, v: 0.5 };
     let rightUV = { u: 1, v: 0.5 };
-    this._debugUVs = [topUV.u, topUV.v, leftUV.u, leftUV.v, rightUV.u, rightUV.v];
+    this._debugUVs = [
+      topUV.u,
+      topUV.v,
+      leftUV.u,
+      leftUV.v,
+      rightUV.u,
+      rightUV.v,
+    ];
   }
 
   getEdgeArray(): Edge[] {
@@ -138,7 +151,7 @@ class Face {
     this._debugUVs = newUVs;
   }
 
-  getEdgesByPoints(): {edge01: Edge, edge12: Edge, edge20: Edge} {
+  getEdgesByPoints(): { edge01: Edge; edge12: Edge; edge20: Edge } {
     // label edge references by connecting points
     let edge01;
     let edge12;
@@ -152,7 +165,7 @@ class Face {
       // assign edge20 to the edge that connects between point2 and point0
       if (edge.connectsPoints(this._points[2], this._points[0])) edge20 = edge;
     }
-    return {edge01, edge12, edge20};
+    return { edge01, edge12, edge20 };
   }
 
   linkToEdges(edge0: Edge, edge1: Edge, edge2: Edge): void {
@@ -166,10 +179,17 @@ class Face {
 
   // give face a reference to adjacent edges and vice versa
   // takes array indices rather than references
-  static linkFaceToEdges(face: number, edge0: number, edge1: number, edge2: number, edges: Edge[], faces: Face[]): void {
+  static linkFaceToEdges(
+    face: number,
+    edge0: number,
+    edge1: number,
+    edge2: number,
+    edges: Edge[],
+    faces: Face[]
+  ): void {
     // get references and call function with references
     faces[face].linkToEdges(edges[edge0], edges[edge1], edges[edge2]);
   }
-};
+}
 
 export { Point, Face, Edge };

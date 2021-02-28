@@ -4,6 +4,8 @@ import { Planet } from './planet';
 import * as BABYLON from '@babylonjs/core';
 import * as GUI from '@babylonjs/gui';
 
+const maxLOD = 5;
+
 class Game {
   private _canvas: HTMLCanvasElement;
   private _engine: BABYLON.Engine;
@@ -67,8 +69,8 @@ class Game {
     panel.addControl(headerLOD);
     let slider = new GUI.Slider();
     slider.minimum = 0;
-    slider.maximum = 6;
-    slider.value = 0;
+    slider.maximum = maxLOD;
+    slider.value = maxLOD;
     slider.step = 1;
     slider.height = "20px";
     slider.width = "200px";
@@ -106,7 +108,7 @@ class Game {
     this._icoMesh.material = this._icoMaterial;
 
     // initialize _icoMesh
-    this.updatePlanetLOD(0);
+    this.updatePlanetLOD(maxLOD);
   }
 
   doRender(): void {
@@ -133,7 +135,7 @@ class Game {
     let result = this._planet.getUpdatedLODMesh(newLOD);
     let vertexData = new BABYLON.VertexData();
 
-    vertexData.positions = result.vertices;
+    vertexData.positions = result.positions;
     vertexData.indices = result.indices;
     vertexData.uvs = result.uvs;
 
