@@ -1,6 +1,6 @@
 {
   "name": "planetgen",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Planet generator written in typescript using Babylonjs as a frontend.",
   "main": "planetgen.js",
   "dependencies": {},
