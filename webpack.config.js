@@ -1,4 +1,9 @@
-var path = require('path');
+
+const path = require('path');
+const fs = require("fs");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+const { CleanWebpackPlugin } = require("clean-webpack-plugin");
+const appDirectory = fs.realpathSync(process.cwd());
 
 module.exports = {
   entry: {
@@ -12,7 +17,20 @@ module.exports = {
     extensions: ['.ts', '.tsx', '.js']
   },
   devtool: 'source-map',
+  devServer: {
+    host: "0.0.0.0",
+    port: 8080,
+    disableHostCheck: true,
+    contentBase: path.resolve(appDirectory, "./"),
+    publicPath: "/",
+    hot: true,
+  },
   plugins: [
+    new HtmlWebpackPlugin({
+        inject: true,
+        template: path.resolve(appDirectory, "src/client/index.htm"),
+    }),
+    new CleanWebpackPlugin(),
   ],
   module: {
     rules: [{

@@ -1,15 +1,10 @@
 {
   "compilerOptions": {
-    "downlevelIteration": true,
+    "target": "es5",
     "module": "commonjs",
-    "lib": [
-      "es2015",
-      "dom"
-    ],
-    "types": [
-      "babylonjs",
-      "babylonjs-gui",
-      "node"
-    ]
+    "outDir": "dist",
+    "sourceMap": true,
+    "rootDir": "src",
+    "esModuleInterop": true
   }
 }
