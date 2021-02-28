@@ -19,14 +19,8 @@ class Game {
   private _icoMaterial: BABYLON.StandardMaterial;
 
   constructor() {
-    // create the canvas html element and attach it to the webpage
-    var canvas = document.createElement('canvas');
-    canvas.style.width = '100%';
-    canvas.style.height = '100%';
-    canvas.id = 'gameCanvas';
-    document.body.appendChild(canvas);
-    document.body.style.margin = '0';
-    document.body.style.bottom = '100%';
+    // find the canvas html element and attach it to the webpage
+    const canvas = document.getElementById('renderCanvas') as HTMLCanvasElement;
     // initialize babylon scene and engine
     this._engine = new BABYLON.Engine(canvas, true);
 
