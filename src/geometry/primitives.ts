@@ -2,18 +2,26 @@ class Point {
   x: number;
   y: number;
   z: number;
+  // keep a set of edges for each LOD for which this point exists
+  // maybe we only need this for LOD 0...
+  edges: Map<number, Set<Edge>>;
+
   data: any;
-  constructor(newX: number, newY: number, newZ: number) {
+
+  constructor(LOD, newX: number, newY: number, newZ: number) {
     this.x = newX;
     this.y = newY;
     this.z = newZ;
     this.data = {};
+    this.edges = new Map<number, Set<Edge>>();
+    this.edges[LOD] = new Set<Edge>();
   }
 }
 
 class Edge {
-  private _points: Point[];
+  private _points: Point[]; // array of just two points
   private _faces: Face[];
+  LOD: number;
 
   // references to keep track of while performing and following subdivision
   subEdges: Edge[];
@@ -21,20 +29,36 @@ class Edge {
 
   data: any;
 
-  constructor(pointArray: Point[], pointIndices?: number[]) {
+  constructor(LOD: number, pointArray: Point[], pointIndices?: number[]) {
+    this.LOD = LOD;
     this._faces = new Array<Face>();
     if (!pointIndices) {
       // if we don't have indices, create an edge from the points given
+      if (pointArray.length != 2) console.log("Warning, creating edge from !=2 points.");
       this._points = pointArray;
     } else {
       // if we do have indices, create an edge from looking up the indices in the given array
+      if (pointArray.length == 2) console.log("Warning, creating edge with pair of points and indices.");
       this._points = [pointArray[pointIndices[0]], pointArray[pointIndices[1]]];
     }
+    this._points.forEach( (point)=> {
+      // create a new LOD level for the point if necessary
+      if (!point.edges[LOD]) point.edges[LOD] = new Set<Edge>();
+      // link this edge to the point at this LOD level
+      point.edges[LOD].add(this);
+    });
     this.data = {};
   }
 
   getPoint(index: number): Point {
     return this._points[index];
+  }
+
+  getOtherPoint(point: Point): Point {
+    if (point==this._points[0]) return this._points[1];
+    if (point==this._points[1]) return this._points[0];
+    console.log("Warning: Called getOtherPoint on an edge not touching a point.");
+    return null;
   }
 
   hasPoint(point: Point): boolean {
@@ -51,6 +75,10 @@ class Edge {
 
   getFaceArray(): Face[] {
     return [...this._faces];
+  }
+
+  getPointArray(): Point[] {
+    return [...this._points];
   }
 
   // returns true if this edge connects point0 and point1 in either direction
@@ -95,12 +123,15 @@ class Face {
   private _edges: Edge[];
   private _debugUVs: number[];
 
+  LOD: number;
+
   // references to keep track of following subdivision
   subFaces: Face[];
 
   data: any;
 
-  constructor(pointArray: Point[], pointIndices?: number[]) {
+  constructor(LOD: number, pointArray: Point[], pointIndices?: number[]) {
+    this.LOD = LOD;
     this._edges = new Array<Edge>();
     if (!pointIndices) {
       // if we don't have indices, create a face from the points given

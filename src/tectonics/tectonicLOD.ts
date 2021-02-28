@@ -60,7 +60,16 @@ class TectonicLOD {
     // iterate though all super edges that connect two links
     priorLOD.linkedEdges.forEach((edge) => {
       // pick a random edge for the fault to pass through
-      let targetEdge = edge.subEdges[Math.round(rng())];
+      let linkEdgeIndex = Math.round(rng());
+      // the unpicked edge must be the other index (only two subedges per edge)
+      let otherEdgeIndex = (linkEdgeIndex==1) ? 0 : 1;
+      // the edge picked will be a faultlink
+      let targetEdge = edge.subEdges[linkEdgeIndex];
+      targetEdge.data.isFaultLink = true;
+      // spread color across the unpicked edge
+      let corner = edge.subEdges[otherEdgeIndex].getSharedPoint(edge);
+      let midpoint = edge.subEdges[otherEdgeIndex].getOtherPoint(corner);
+      midpoint.data.color = corner.data.color;
 
       // create new FaultLinks at that edge
       let newLinks = new Array<FaultLink>();
@@ -156,47 +165,42 @@ class TectonicLOD {
       }
     });
 
-    type color = { r: number, g: number, b: number, a: number };
+    // iterate through all links and ensure they all have at least 2 connections
+    this._expandAllLinks(rng);
+    this._updateAllLinks();
 
-    // return true iff we assigned a new region to this face
-    function assignFaceToRegion(face: Face, region: color): boolean {
-      // if this face is already part of a region, ignore it
-      for (let point of face.getPointArray()) {
-        if (point.data.color) return false;
-      }
-      // otherwise color it
-      face.getPointArray().forEach( (point)=>{
-        if (!point.data.color) {
-          point.data.color = region;
-        }
-      });
-      // if we assigned a new region, spread it
-      if (assignFaceToRegion(face, region)) {
-        face.getAdjacentFaces().forEach( (adjFace)=>{
-          // if not a link face, spread here
-          if (!adjFace.data.faultLink)
-            assignFaceToRegion(adjFace, region);
-        });
-      }
-      return true;
-    };
+    // make sure we know each edge for what it is
+    this.linkedEdges.forEach((edge)=>{
+      edge.data.isFaultLink = true;
+    });
 
-    this.unpickedFaces.forEach( (face)=> {
-      // pick a random color
-      let num = Math.round(0xffffff * Math.random());
-      let color = {
+    // assign regions
+    type Color = { r: number, g: number, b: number, a: number };
+    function newColor(): Color {
+      let num = Math.round(0xffffff * rng());
+      return {
         r: (num >> 16)/255,
         g: (num >> 8 & 255)/255,
         b: (num & 255)/255,
         a: 1
       };
-      assignFaceToRegion(face, color);
+    }
+    function assignColorToPoint(point: Point, color: Color) {
+      point.data.color = color;
+      for (let edge of point.edges[0]) {
+        // spread color across edges without faultLinks
+        let otherPoint = edge.getOtherPoint(point);
+        if (!edge.data.isFaultLink && !otherPoint.data.color)
+          assignColorToPoint(otherPoint, point.data.color)
+      };
+    }
+    // assign a color to each point
+    this.points.forEach( (point)=>{
+      // if this point has no color, pick one
+      if (!point.data.color) 
+        assignColorToPoint(point, newColor());
+      // otherwise, colors will spread recursively
     });
-
-    // iterate through all links and ensure they all have at least 2 connections
-    this._expandAllLinks(rng);
-
-    this._updateAllLinks();
   }
 
   protected _connectLinks(link0: FaultLink, link1: FaultLink): void {
@@ -250,6 +254,7 @@ class TectonicLOD {
     let point0 = edge.getPoint(0);
     let point1 = edge.getPoint(1);
     let midpoint = new Point(
+      edge.LOD+1,
       point0.x + (point1.x - point0.x) / 2,
       point0.y + (point1.y - point0.y) / 2,
       point0.z + (point1.z - point0.z) / 2
@@ -268,14 +273,20 @@ class TectonicLOD {
     this.points.push(midpoint);
 
     // create new subdivided edges
-    let subEdge0 = new Edge([point0, midpoint]);
-    let subEdge1 = new Edge([point1, midpoint]);
+    let subEdge0 = new Edge(edge.LOD+1, [point0, midpoint]);
+    let subEdge1 = new Edge(edge.LOD+1, [point1, midpoint]);
     this.edges.push(subEdge0);
     this.edges.push(subEdge1);
 
     // add references to new submembers of this edge
     edge.midpoint = midpoint;
     edge.subEdges = [subEdge0, subEdge1];
+
+    // we can spread color if the edge is not a faultlink
+    if (!edge.data.isFaultLink) {
+      // we can use either point since they must be the same
+      midpoint.data.color = edge.getPoint(0).data.color;
+    }
   }
 
   protected _subdivideFace(face: Face): void {
@@ -290,10 +301,10 @@ class TectonicLOD {
 
     // create new faces
     let newFaces = [
-      new Face([pointArray[0], midpoint01, midpoint20]),
-      new Face([pointArray[1], midpoint12, midpoint01]),
-      new Face([pointArray[2], midpoint20, midpoint12]),
-      new Face([midpoint01, midpoint12, midpoint20]),
+      new Face(face.LOD+1, [pointArray[0], midpoint01, midpoint20]),
+      new Face(face.LOD+1, [pointArray[1], midpoint12, midpoint01]),
+      new Face(face.LOD+1, [pointArray[2], midpoint20, midpoint12]),
+      new Face(face.LOD+1, [midpoint01, midpoint12, midpoint20]),
     ];
     this.faces.push(...newFaces);
 
@@ -302,9 +313,9 @@ class TectonicLOD {
 
     // create new inside edges
     let midEdges = [
-      new Edge([midpoint01, midpoint20]),
-      new Edge([midpoint12, midpoint01]),
-      new Edge([midpoint20, midpoint12]),
+      new Edge(face.LOD+1, [midpoint01, midpoint20]),
+      new Edge(face.LOD+1, [midpoint12, midpoint01]),
+      new Edge(face.LOD+1, [midpoint20, midpoint12]),
     ];
     this.edges.push(...midEdges);
 

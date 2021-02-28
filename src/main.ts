@@ -3,7 +3,7 @@ import { Planet } from './planet';
 import * as BABYLON from '@babylonjs/core';
 import * as GUI from '@babylonjs/gui';
 
-const maxLOD = 2;
+const maxLOD = 5;
 const startSeed = Math.round(Math.random() * 1000000);
 
 class Game {

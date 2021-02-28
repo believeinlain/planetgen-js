@@ -31,6 +31,7 @@ class Planet {
 
   // set new seed and regenerate all LOD levels
   changeSeed(seed: number, LODLevel: number): void {
+    this._points = new Array<Point>(12);
     this._seed = seed;
     this._rng = seedrandom(seed);
     this._LOD = [];
@@ -46,7 +47,7 @@ class Planet {
     // generate each new LOD up to LODLevel from the last LODLevel
     // starting at LOD.length
     for (let i = this._LOD.length; i <= LODLevel; ++i) {
-      console.log(`Generating LOD level ${i}:`);
+      //console.log(`Generating LOD level ${i}:`);
       this._LOD.push(
         new TectonicLOD(
           this._points,
@@ -56,7 +57,7 @@ class Planet {
           (this._LOD.length > 0) ? this._LOD[i - 1] : null
         )
       );
-      console.log(`Faces: ${this._LOD[i].faces.length}, Points: ${this._points.length}.`);
+      //console.log(`Faces: ${this._LOD[i].faces.length}, Points: ${this._points.length}.`);
     }
   }
 
