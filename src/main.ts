@@ -5,6 +5,7 @@ import * as BABYLON from '@babylonjs/core';
 import * as GUI from '@babylonjs/gui';
 
 const maxLOD = 5;
+const startSeed = Math.round(Math.random()*1000000);
 
 class Game {
   private _canvas: HTMLCanvasElement;
@@ -63,7 +64,7 @@ class Game {
 
     // create LOD control
     let headerLOD = new GUI.TextBlock();
-    headerLOD.text = "LOD Level: 0";
+    headerLOD.text = `LOD Level: ${maxLOD}`;
     headerLOD.height = "30px";
     headerLOD.color = "black";
     panel.addControl(headerLOD);
@@ -75,7 +76,7 @@ class Game {
     slider.height = "20px";
     slider.width = "200px";
     slider.onValueChangedObservable.add( (value) => {
-      headerLOD.text = "LOD Level: " + value;
+      headerLOD.text = `LOD Level: ${value}`;
       this.updatePlanetLOD(value);
     });
     panel.addControl(slider);
@@ -89,7 +90,7 @@ class Game {
     let input = new GUI.InputText();
     input.height = "20px";
     input.width = "200px";
-    input.text = "1000";
+    input.text = startSeed.toString();
     input.color = "white";
     input.onFocusSelectAll = false;
     input.autoStretchWidth = false;
@@ -99,7 +100,7 @@ class Game {
     panel.addControl(input);
 
     // make a planet
-    this._planet = new Planet(2, 1000, 0.3);
+    this._planet = new Planet(2, startSeed, 0.3);
     this._icoMesh = new BABYLON.Mesh('planet', this._scene);
 
     // use debug texture for this thing
