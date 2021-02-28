@@ -34,6 +34,12 @@ class Game {
     window.addEventListener('resize', () => {
       this._engine.resize();
     });
+
+    // Create the scene.
+    this.createScene();
+
+    // Start render loop.
+    this.doRender();
   }
 
   createScene(): void {
@@ -129,11 +135,6 @@ class Game {
     this._engine.runRenderLoop(() => {
       this._scene.render();
     });
-
-    // The canvas/window resize event handler.
-    window.addEventListener('resize', () => {
-      this._engine.resize();
-    });
   }
 
   // redraw _icosphere at the specified LOD
@@ -151,13 +152,4 @@ class Game {
   }
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-  // Create the game
-  let game = new Game();
-
-  // Create the scene.
-  game.createScene();
-
-  // Start render loop.
-  game.doRender();
-});
+new Game();
