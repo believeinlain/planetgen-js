@@ -29,6 +29,11 @@ class Game {
       this._engine.resize();
     });
 
+    // resize when intially loaded
+    window.addEventListener('DOMContentLoaded', () => {
+      this._engine.resize();
+    });
+
     // Create the scene.
     this.createScene();
 
