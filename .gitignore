@@ -1,6 +1,3 @@
-# ignore bundled js
-dist/
-
 #ignore node dependencies
 node_modules/
 

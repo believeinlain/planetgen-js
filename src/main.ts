@@ -113,7 +113,7 @@ class Game {
     // use debug texture for this thing
     this._icoMaterial = new BABYLON.StandardMaterial('mat', this._scene);
     this._icoMaterial.diffuseTexture = new BABYLON.Texture(
-      'images/PlanetgenDebug_color.png',
+      'res/tex/PlanetgenDebug_color.png',
       this._scene
     );
     this._icoMesh.material = this._icoMaterial;
