@@ -1,8 +1,8 @@
 
 import { Planet } from './planet';
 
-import * as BABYLON from 'babylonjs';
-import * as GUI from 'babylonjs-gui';
+import * as BABYLON from '@babylonjs/core';
+import * as GUI from '@babylonjs/gui';
 
 class Game {
   private _canvas: HTMLCanvasElement;
@@ -16,10 +16,22 @@ class Game {
   private _icoMesh: BABYLON.Mesh;
   private _icoMaterial: BABYLON.StandardMaterial;
 
-  constructor(canvasElement: string) {
-    // Create canvas and engine.
-    this._canvas = document.getElementById(canvasElement) as HTMLCanvasElement;
-    this._engine = new BABYLON.Engine(this._canvas, true);
+  constructor() {
+    // create the canvas html element and attach it to the webpage
+    var canvas = document.createElement("canvas");
+    canvas.style.width = "100%";
+    canvas.style.height = "100%";
+    canvas.id = "gameCanvas";
+    document.body.appendChild(canvas);
+    document.body.style.margin = "0";
+    document.body.style.bottom = "100%";
+    // initialize babylon scene and engine
+    this._engine = new BABYLON.Engine(canvas, true);
+
+    // The canvas/window resize event handler.
+    window.addEventListener('resize', () => {
+      this._engine.resize();
+    });
   }
 
   createScene(): void {
@@ -39,7 +51,7 @@ class Game {
     this._light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0,1,0), this._scene);
 
     // create the GUI
-    this._gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+    this._gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this._scene);
 
     var panel = new GUI.StackPanel();
     panel.width = "220px";
@@ -90,7 +102,7 @@ class Game {
 
     // use debug texture for this thing
     this._icoMaterial = new BABYLON.StandardMaterial("mat", this._scene);
-    this._icoMaterial.diffuseTexture = new BABYLON.Texture("../planetgen/PlanetgenDebug_color.png", this._scene);
+    this._icoMaterial.diffuseTexture = new BABYLON.Texture("images/PlanetgenDebug_color.png", this._scene);
     this._icoMesh.material = this._icoMaterial;
 
     // initialize _icoMesh
@@ -130,8 +142,8 @@ class Game {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  // Create the game using the 'renderCanvas'.
-  let game = new Game('renderCanvas');
+  // Create the game
+  let game = new Game();
 
   // Create the scene.
   game.createScene();
