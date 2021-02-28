@@ -1,4 +1,3 @@
-
 import { Point, Edge, Face } from '../geometry/primitives';
 import { Icosahedron } from '../geometry/icosahedron';
 import { FaultLink } from '../tectonics/faultLink';
@@ -126,10 +125,7 @@ class TectonicLOD {
         this.links.set(superFace.subFaces[3], centerLink);
         // link each of the links on this superFace to the centerLink
         for (let index of linkFaceIndices) {
-          this._connectLinks(
-            this.links.get(superFace.subFaces[index]),
-            centerLink
-          );
+          this._connectLinks(this.links.get(superFace.subFaces[index]), centerLink);
         }
       }
       // if there is only one subface with links, it must already be connected off-face
@@ -158,10 +154,7 @@ class TectonicLOD {
       let pick = Math.floor(this.rng() * this.unpickedFaces.length);
 
       // create a new FaultLink at that face
-      this.links.set(
-        this.unpickedFaces[pick],
-        new FaultLink(this.unpickedFaces[pick])
-      );
+      this.links.set(this.unpickedFaces[pick], new FaultLink(this.unpickedFaces[pick]));
       // remove the selected face so we don't pick it again
       this.unpickedFaces.splice(pick, 1);
     }
@@ -202,8 +195,7 @@ class TectonicLOD {
     let edgeBetween = link0.getEdgeAcrossConnectionTo(link1);
     // add the edge between them to linkedEdges
     if (edgeBetween) this.linkedEdges.push(edgeBetween);
-    else
-      console.log("Error, tried to connect two links that don't share an edge");
+    else console.log("Error, tried to connect two links that don't share an edge");
   }
 
   // after links and mesh have been created, update the draw data on the faces appropriately
@@ -216,25 +208,19 @@ class TectonicLOD {
     for (let link of this.links.values()) {
       if (link.connections.size < 2) {
         // get adjacent links to this link
-        let possibleConnectionFaces = new Set<Face>(
-          link.location.getAdjacentFaces()
-        );
+        let possibleConnectionFaces = new Set<Face>(link.location.getAdjacentFaces());
         // remove the existing connection from possibleConnections
-        let existingConnection: FaultLink = link.connections.values().next()
-          .value;
+        let existingConnection: FaultLink = link.connections.values().next().value;
         possibleConnectionFaces.delete(existingConnection.location);
         // pick a random connection to link to
-        let targetFace: Face = Array.from(possibleConnectionFaces)[
-          Math.round(this.rng())
-        ];
+        let targetFace: Face = Array.from(possibleConnectionFaces)[Math.round(this.rng())];
 
         // find the face in unpickedFaces, if not found, unpickedIndex = -1
         let unpickedIndex: number = this.unpickedFaces.indexOf(targetFace);
         if (unpickedIndex === -1) {
           // face has already been picked, so link its link to this link
           this.links.forEach((otherLink) => {
-            if (otherLink.location == targetFace)
-              this._connectLinks(otherLink, link);
+            if (otherLink.location == targetFace) this._connectLinks(otherLink, link);
           });
         } else {
           // create a new FaultLink at targetFace
@@ -260,9 +246,7 @@ class TectonicLOD {
 
     // shift the new point so it's radius from the origin
     let distToOrigin = Math.sqrt(
-      midpoint.x * midpoint.x +
-        midpoint.y * midpoint.y +
-        midpoint.z * midpoint.z
+      midpoint.x * midpoint.x + midpoint.y * midpoint.y + midpoint.z * midpoint.z
     );
     let scaleFactor = this.radius / distToOrigin;
     midpoint.x *= scaleFactor;

@@ -9,7 +9,7 @@ class Icosahedron {
 
   constructor(radius: number) {
     this.radius = radius;
-    
+
     // ensure given arrays can hold the required values
     this.points = new Array<Point>(12);
     this.edges = new Array<Edge>(30);
@@ -40,9 +40,9 @@ class Icosahedron {
     for (let i = 0; i < 5; i++) {
       // add points 6 through 10
       this.points[6 + i] = new Point(
-          topRingRadius * Math.cos(longitudeAngle * (i * 2 - 1)),
-          topRingRadius * Math.sin(longitudeAngle * (i * 2 - 1)),
-          -topRingHeight
+        topRingRadius * Math.cos(longitudeAngle * (i * 2 - 1)),
+        topRingRadius * Math.sin(longitudeAngle * (i * 2 - 1)),
+        -topRingHeight
       );
     }
 

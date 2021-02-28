@@ -1,11 +1,10 @@
-
 import { Planet } from './planet';
 
 import * as BABYLON from '@babylonjs/core';
 import * as GUI from '@babylonjs/gui';
 
 const maxLOD = 5;
-const startSeed = Math.round(Math.random()*1000000);
+const startSeed = Math.round(Math.random() * 1000000);
 
 class Game {
   private _canvas: HTMLCanvasElement;
@@ -21,13 +20,13 @@ class Game {
 
   constructor() {
     // create the canvas html element and attach it to the webpage
-    var canvas = document.createElement("canvas");
-    canvas.style.width = "100%";
-    canvas.style.height = "100%";
-    canvas.id = "gameCanvas";
+    var canvas = document.createElement('canvas');
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.id = 'gameCanvas';
     document.body.appendChild(canvas);
-    document.body.style.margin = "0";
-    document.body.style.bottom = "100%";
+    document.body.style.margin = '0';
+    document.body.style.bottom = '100%';
     // initialize babylon scene and engine
     this._engine = new BABYLON.Engine(canvas, true);
 
@@ -42,7 +41,14 @@ class Game {
     this._scene = new BABYLON.Scene(this._engine);
 
     // Create a camera, and set its position
-    this._camera = new BABYLON.ArcRotateCamera('camera', 0, 0, 10, new BABYLON.Vector3(0, 0, 0), this._scene);
+    this._camera = new BABYLON.ArcRotateCamera(
+      'camera',
+      0,
+      0,
+      10,
+      new BABYLON.Vector3(0, 0, 0),
+      this._scene
+    );
 
     // Target the camera to scene origin.
     this._camera.setTarget(BABYLON.Vector3.Zero());
@@ -51,13 +57,13 @@ class Game {
     this._camera.attachControl(this._canvas, false);
 
     // Create a basic light, aiming 0,1,0 - meaning, to the sky.
-    this._light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0,1,0), this._scene);
+    this._light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0, 1, 0), this._scene);
 
     // create the GUI
-    this._gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this._scene);
+    this._gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI('UI', true, this._scene);
 
     var panel = new GUI.StackPanel();
-    panel.width = "220px";
+    panel.width = '220px';
     panel.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     panel.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_CENTER;
     this._gui.addControl(panel);
@@ -65,17 +71,17 @@ class Game {
     // create LOD control
     let headerLOD = new GUI.TextBlock();
     headerLOD.text = `LOD Level: ${maxLOD}`;
-    headerLOD.height = "30px";
-    headerLOD.color = "black";
+    headerLOD.height = '30px';
+    headerLOD.color = 'black';
     panel.addControl(headerLOD);
     let slider = new GUI.Slider();
     slider.minimum = 0;
     slider.maximum = maxLOD;
     slider.value = maxLOD;
     slider.step = 1;
-    slider.height = "20px";
-    slider.width = "200px";
-    slider.onValueChangedObservable.add( (value) => {
+    slider.height = '20px';
+    slider.width = '200px';
+    slider.onValueChangedObservable.add((value) => {
       headerLOD.text = `LOD Level: ${value}`;
       this.updatePlanetLOD(value);
     });
@@ -83,18 +89,18 @@ class Game {
 
     // create Seed control
     let header = new GUI.TextBlock();
-    header.text = "Seed";
-    header.height = "30px";
-    header.color = "black";
+    header.text = 'Seed';
+    header.height = '30px';
+    header.color = 'black';
     panel.addControl(header);
     let input = new GUI.InputText();
-    input.height = "20px";
-    input.width = "200px";
+    input.height = '20px';
+    input.width = '200px';
     input.text = startSeed.toString();
-    input.color = "white";
+    input.color = 'white';
     input.onFocusSelectAll = false;
     input.autoStretchWidth = false;
-    input.onTextChangedObservable.add( () => {
+    input.onTextChangedObservable.add(() => {
       this.updatePlanetSeed(Number(input.text));
     });
     panel.addControl(input);
@@ -104,8 +110,11 @@ class Game {
     this._icoMesh = new BABYLON.Mesh('planet', this._scene);
 
     // use debug texture for this thing
-    this._icoMaterial = new BABYLON.StandardMaterial("mat", this._scene);
-    this._icoMaterial.diffuseTexture = new BABYLON.Texture("images/PlanetgenDebug_color.png", this._scene);
+    this._icoMaterial = new BABYLON.StandardMaterial('mat', this._scene);
+    this._icoMaterial.diffuseTexture = new BABYLON.Texture(
+      'images/PlanetgenDebug_color.png',
+      this._scene
+    );
     this._icoMesh.material = this._icoMaterial;
 
     // initialize _icoMesh

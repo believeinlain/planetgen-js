@@ -1,5 +1,4 @@
-
-import { Point } from './geometry/primitives'
+import { Point } from './geometry/primitives';
 import { TectonicLOD } from './tectonics/tectonicLOD';
 
 class Planet {
@@ -9,7 +8,7 @@ class Planet {
   seed: number;
   nodeDensity: number;
 
-  constructor (radius: number, seed: number, nodeDensity: number) {
+  constructor(radius: number, seed: number, nodeDensity: number) {
     // initialize point array
     this._points = new Array<Point>(12);
     this.radius = radius;
@@ -23,7 +22,7 @@ class Planet {
   // set new seed and regenerate mesh
   changeSeed(newSeed: number): void {
     this.seed = newSeed;
-    let LODLevel = this._LOD.length-1;
+    let LODLevel = this._LOD.length - 1;
     this._LOD = undefined;
     this._updateLOD(LODLevel);
   }
@@ -46,8 +45,16 @@ class Planet {
 
     // generate each new LOD up to LODLevel from the last LODLevel
     // starting at LOD.length
-    for (let i=this._LOD.length; i<=LODLevel; ++i) {
-      this._LOD.push(new TectonicLOD(this._points, this.radius, this.seed, this.nodeDensity, this._LOD[i-1] as TectonicLOD));
+    for (let i = this._LOD.length; i <= LODLevel; ++i) {
+      this._LOD.push(
+        new TectonicLOD(
+          this._points,
+          this.radius,
+          this.seed,
+          this.nodeDensity,
+          this._LOD[i - 1] as TectonicLOD
+        )
+      );
     }
   }
 
@@ -55,6 +62,6 @@ class Planet {
     this._updateLOD(LODLevel);
     return this._LOD[LODLevel].meshData;
   }
-};
+}
 
 export { Planet };

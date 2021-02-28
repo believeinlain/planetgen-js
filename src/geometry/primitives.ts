@@ -22,7 +22,7 @@ class Edge {
 
   constructor(pointArray: Point[], pointIndices?: number[]) {
     this._faces = new Array<Face>();
-    if (pointIndices === undefined) {
+    if (!pointIndices) {
       // if we don't have indices, create an edge from the points given
       this._points = pointArray;
     } else {
@@ -61,7 +61,7 @@ class Edge {
   // returns this edge's subEdge that connects point0 and point1
   // returns undefined if does not exist
   getSubEdgeBetween(point0: Point, point1: Point): Edge {
-    if (typeof this.subEdges === undefined) return undefined;
+    if (!this.subEdges) return null;
     for (let subEdge of this.subEdges) {
       if (subEdge.connectsPoints(point0, point1)) return subEdge;
     }
@@ -100,7 +100,7 @@ class Face {
 
   constructor(pointArray: Point[], pointIndices?: number[]) {
     this._edges = new Array<Edge>();
-    if (pointIndices === undefined) {
+    if (!pointIndices) {
       // if we don't have indices, create a face from the points given
       this._points = pointArray;
     } else {
@@ -115,14 +115,7 @@ class Face {
     let topUV = { u: 0.75, v: 1 };
     let leftUV = { u: 0.5, v: 0.5 };
     let rightUV = { u: 1, v: 0.5 };
-    this._debugUVs = [
-      topUV.u,
-      topUV.v,
-      leftUV.u,
-      leftUV.v,
-      rightUV.u,
-      rightUV.v,
-    ];
+    this._debugUVs = [topUV.u, topUV.v, leftUV.u, leftUV.v, rightUV.u, rightUV.v];
   }
 
   getEdgeArray(): Edge[] {
@@ -153,19 +146,21 @@ class Face {
 
   getEdgesByPoints(): { edge01: Edge; edge12: Edge; edge20: Edge } {
     // label edge references by connecting points
-    let edge01;
-    let edge12;
-    let edge20;
+    let result = {
+      edge01: null,
+      edge12: null,
+      edge20: null,
+    };
     // find edges by connecting points
     for (let edge of this._edges) {
       // assign edge01 to the edge that connects between point0 and point1
-      if (edge.connectsPoints(this._points[0], this._points[1])) edge01 = edge;
+      if (edge.connectsPoints(this._points[0], this._points[1])) result.edge01 = edge;
       // assign edge12 to the edge that connects between point1 and point2
-      if (edge.connectsPoints(this._points[1], this._points[2])) edge12 = edge;
+      if (edge.connectsPoints(this._points[1], this._points[2])) result.edge12 = edge;
       // assign edge20 to the edge that connects between point2 and point0
-      if (edge.connectsPoints(this._points[2], this._points[0])) edge20 = edge;
+      if (edge.connectsPoints(this._points[2], this._points[0])) result.edge20 = edge;
     }
-    return { edge01, edge12, edge20 };
+    return result;
   }
 
   linkToEdges(edge0: Edge, edge1: Edge, edge2: Edge): void {
