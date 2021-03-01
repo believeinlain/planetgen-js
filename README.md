@@ -1,4 +1,4 @@
-# planetgen-js
+# Planet Generator
 TypeScript planet generator using Babylon.js as a frontend.
 
 To build, simply execute: 
