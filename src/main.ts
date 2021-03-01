@@ -30,7 +30,7 @@ class Game {
     });
 
     // resize when intially loaded
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('load', () => {
       this._engine.resize();
     });
 
