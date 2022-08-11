@@ -1,9 +1,8 @@
 {
   "name": "planetgen",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Planet generator written in typescript using Babylonjs as a frontend.",
   "main": "planetgen.js",
-  "dependencies": {},
   "devDependencies": {
     "@babylonjs/core": "^4.2.0",
     "@babylonjs/gui": "^4.2.0",
@@ -18,7 +17,7 @@
     "typescript": "^4.2.2",
     "webpack": "^5.24.2",
     "webpack-cli": "^4.5.0",
-    "webpack-dev-server": "^3.11.2"
+    "webpack-dev-server": "^4.10.0"
   },
   "scripts": {
     "build": "webpack",
